@@ -1,0 +1,289 @@
+---
+import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
+import heroBg from '../assets/hero-bg.png';
+
+const word = 'Bigway';
+const highlights = ['Fibra óptica', 'Velocidad simétrica', 'Call center', 'Servicio técnico propio'];
+---
+
+<section class="hero">
+	<div class="container wordmark-wrap">
+		<h1 class="wordmark" style={`--n: ${word.length}`}>
+			<span class="sr-only">Bigway, Internet por fibra óptica en Mendoza</span>
+			<span aria-hidden="true" class="wm-word">
+				{[...word].map((char, i) => <span class="wm-char" style={`--i: ${i}`}>{char}</span>)}
+			</span>
+		</h1>
+	</div>
+
+	<div class="container hero-copy">
+		<div data-reveal style="--reveal-delay: 520ms">
+			<p class="pill"><Icon name="pin" size={13} /> San José, Guaymallén, Mendoza</p>
+			<p class="tagline">Mejorá tu conexión con el mundo.</p>
+		</div>
+		<div class="hero-aside" data-reveal style="--reveal-delay: 600ms">
+			<p class="lead">
+				Internet veloz para hogares y empresas, para aprovechar al máximo tus momentos de trabajo,
+				ocio y educación.
+			</p>
+			<a href="#planesfo" class="link-underline">
+				Ver planes <Icon name="arrow" size={14} />
+			</a>
+		</div>
+	</div>
+
+	<div class="hero-media">
+		<Image
+			src={heroBg}
+			alt="Persona navegando en una tablet"
+			widths={[768, 1280, 1920]}
+			sizes="100vw"
+			loading="eager"
+			fetchpriority="high"
+			data-parallax
+		/>
+		<div class="shade"></div>
+
+		<div class="overlay on-dark top">
+			<span class="pill">Internet por fibra óptica</span>
+		</div>
+
+		<a href="#planesfo" class="overlay float-card">
+			<span>
+				<span class="float-title">Planes desde 25 MB</span>
+				<span class="float-sub">Misma velocidad de bajada y subida.</span>
+			</span>
+			<span class="float-arrow"><Icon name="arrow-up-right" size={13} /></span>
+		</a>
+
+		<div class="overlay on-dark bottom">
+			<p class="statement">
+				Viví la experiencia Bigway: una conexión veloz con la última tecnología, usada en el primer
+				mundo.
+			</p>
+			<ul class="pills">
+				{highlights.map((h) => <li class="pill">{h}</li>)}
+			</ul>
+		</div>
+	</div>
+</section>
+
+<script>
+	// Gentle parallax on the hero photo; skipped when the user prefers reduced motion.
+	const photo = document.querySelector<HTMLImageElement>('[data-parallax]');
+
+	if (photo && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		let ticking = false;
+		const update = () => {
+			const rect = photo.parentElement!.getBoundingClientRect();
+			const offset = Math.max(-1, Math.min(1, rect.top / window.innerHeight));
+			photo.style.transform = `translate3d(0, ${offset * -60}px, 0) scale(1.12)`;
+			ticking = false;
+		};
+		addEventListener(
+			'scroll',
+			() => {
+				if (!ticking) requestAnimationFrame(update);
+				ticking = true;
+			},
+			{ passive: true },
+		);
+		update();
+	}
+</script>
+
+<style>
+	.hero {
+		padding-top: clamp(2rem, 4vw, 3rem);
+	}
+
+	/* Sized against the container (not the viewport), so it never outgrows the max-width. */
+	.wordmark-wrap {
+		container-type: inline-size;
+	}
+
+	/* "Bigway" fills the container width; ratio tuned to General Sans 500. */
+	.wordmark {
+		font-size: calc(100cqi / 3.02);
+		font-weight: 500;
+		line-height: 0.86;
+		letter-spacing: -0.065em;
+		white-space: nowrap;
+		user-select: none;
+	}
+
+	.wm-word {
+		display: block;
+		overflow: hidden;
+	}
+
+	/* Each letter carries its slice of the brand gradient, so it can animate on its own. */
+	.wm-char {
+		display: inline-block;
+		/* background-clip only paints inside the box: extend it past the g/y descenders and the
+		   glyph overhang left by the negative tracking, then cancel the extra width with margins. */
+		padding: 0 0.08em 0.2em;
+		margin-inline: -0.08em;
+		background: linear-gradient(90deg, var(--gold), #a8708f 45%, var(--purple));
+		background-size: calc(var(--n) * 100%) 100%;
+		background-position-x: calc(var(--i) / (var(--n) - 1) * 100%);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+
+	.js .wm-char {
+		transform: translateY(105%);
+		animation: rise 1.1s var(--ease-out) forwards;
+		animation-delay: calc(var(--i) * 60ms + 100ms);
+	}
+
+	@keyframes rise {
+		to {
+			transform: none;
+		}
+	}
+
+	.hero-copy {
+		display: grid;
+		grid-template-columns: repeat(12, 1fr);
+		align-items: end;
+		gap: 1.5rem;
+		margin-top: 0.5rem;
+	}
+
+	.hero-copy > :first-child {
+		grid-column: span 6;
+	}
+
+	.hero-aside {
+		grid-column: 9 / span 4;
+	}
+
+	.tagline {
+		margin-top: 1.25rem;
+		font-family: var(--font-display);
+		font-size: clamp(1.5rem, 2.4vw, 2rem);
+		letter-spacing: -0.03em;
+		line-height: 1.2;
+	}
+
+	.hero-aside .link-underline {
+		margin-top: 1.25rem;
+	}
+
+	.hero-media {
+		position: relative;
+		margin: clamp(2rem, 3vw, 2.5rem) clamp(0.625rem, 1.4vw, 1.25rem) 0;
+		overflow: hidden;
+		border-radius: var(--radius-panel);
+		background: var(--ink);
+	}
+
+	.hero-media img {
+		width: 100%;
+		height: clamp(520px, 88svh, 900px);
+		object-fit: cover;
+		transform: scale(1.12);
+		will-change: transform;
+	}
+
+	.shade {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(to top, rgba(20, 22, 25, 0.75), transparent 55%, rgba(20, 22, 25, 0.15));
+	}
+
+	.overlay {
+		position: absolute;
+	}
+
+	.top {
+		top: clamp(1.25rem, 3vw, 2.5rem);
+		left: clamp(1.25rem, 3vw, 2.5rem);
+	}
+
+	.bottom {
+		inset-inline: 0;
+		bottom: 0;
+		padding: clamp(1.25rem, 3vw, 2.5rem);
+		padding-right: 26rem;
+	}
+
+	.statement {
+		max-width: 42rem;
+		font-family: var(--font-display);
+		font-size: clamp(1.25rem, 2.3vw, 2rem);
+		letter-spacing: -0.03em;
+		line-height: 1.25;
+		color: var(--cream);
+	}
+
+	.pills {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin-top: 1rem;
+	}
+
+	.float-card {
+		right: 2.5rem;
+		bottom: 2.5rem;
+		z-index: 1;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		width: 20rem;
+		padding: 1.25rem;
+		border-radius: 1.25rem;
+		background: color-mix(in srgb, var(--paper) 95%, transparent);
+		box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.5);
+		text-decoration: none;
+		backdrop-filter: blur(8px);
+	}
+
+	.float-title {
+		display: block;
+		font-weight: 500;
+		font-size: 0.9375rem;
+	}
+
+	.float-sub {
+		display: block;
+		font-size: 0.75rem;
+		color: var(--muted);
+	}
+
+	.float-arrow {
+		display: grid;
+		flex-shrink: 0;
+		place-items: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: 50%;
+		background: var(--ink);
+		color: var(--cream);
+		transition: transform 0.3s var(--ease-out);
+	}
+
+	.float-card:hover .float-arrow {
+		transform: rotate(45deg);
+	}
+
+	@media (max-width: 900px) {
+		.hero-copy > :first-child,
+		.hero-aside {
+			grid-column: 1 / -1;
+		}
+
+		.bottom {
+			padding-right: clamp(1.25rem, 3vw, 2.5rem);
+		}
+
+		.float-card {
+			display: none;
+		}
+	}
+</style>

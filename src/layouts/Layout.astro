@@ -1,0 +1,366 @@
+---
+import { Font } from 'astro:assets';
+
+interface Props {
+	title: string;
+	description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<html lang="es-AR">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="theme-color" content="#f3f1ec" />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:type" content="website" />
+		<meta property="og:locale" content="es_AR" />
+		<Font cssVariable="--font-display" preload />
+		<Font cssVariable="--font-body" preload />
+		<Font cssVariable="--font-serif" />
+		<script is:inline>
+			document.documentElement.classList.add('js');
+		</script>
+	</head>
+	<body>
+		<a href="#main" class="skip-link">Saltar al contenido</a>
+		<slot />
+	</body>
+</html>
+
+<script>
+	// Reveal blocks as they scroll into view.
+	const blocks = document.querySelectorAll('[data-reveal]');
+	const observer = new IntersectionObserver(
+		(entries) => {
+			for (const entry of entries) {
+				if (!entry.isIntersecting) continue;
+				entry.target.classList.add('is-visible');
+				observer.unobserve(entry.target);
+			}
+		},
+		{ rootMargin: '0px 0px -10% 0px' },
+	);
+	blocks.forEach((block) => observer.observe(block));
+</script>
+
+<style is:global>
+	:root {
+		--cream: #f3f1ec;
+		--paper: #faf9f6;
+		--ink: #141619;
+		--muted: #6b6e74;
+		--line: #dedad1;
+		--mist: #a9acb3;
+		--purple: #6f2d91;
+		--purple-soft: #ece3f1;
+		--yellow: #fff56c;
+		--gold: #c9a94a;
+
+		--radius-card: 1.5rem;
+		--radius-panel: 2rem;
+		--gutter: clamp(1.25rem, 4vw, 2.5rem);
+		--max-width: 1440px;
+		--ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+	}
+
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+	}
+
+	html {
+		scroll-behavior: smooth;
+		scroll-padding-top: 5rem;
+		-webkit-text-size-adjust: 100%;
+	}
+
+	body {
+		margin: 0;
+		min-height: 100dvh;
+		font-family: var(--font-body);
+		font-size: 1rem;
+		line-height: 1.6;
+		color: var(--ink);
+		background: var(--cream);
+		-webkit-font-smoothing: antialiased;
+	}
+
+	img {
+		max-width: 100%;
+		height: auto;
+		display: block;
+	}
+
+	a {
+		color: inherit;
+	}
+
+	h1,
+	h2,
+	h3 {
+		margin: 0;
+		font-family: var(--font-display);
+		font-weight: 500;
+		letter-spacing: -0.035em;
+		line-height: 1.05;
+	}
+
+	p {
+		margin: 0;
+	}
+
+	ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	/* Serif italic accent inside display headings. */
+	.accent {
+		letter-spacing: -0.01em;
+		color: var(--purple);
+	}
+
+	.on-dark .accent {
+		color: var(--yellow);
+	}
+
+	.container {
+		width: 100%;
+		max-width: var(--max-width);
+		margin-inline: auto;
+		padding-inline: var(--gutter);
+	}
+
+	.section {
+		margin-top: clamp(6rem, 12vw, 9rem);
+	}
+
+	.eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--muted);
+	}
+
+	.eyebrow::before {
+		content: '';
+		width: 0.4rem;
+		height: 0.4rem;
+		border-radius: 50%;
+		background: var(--purple);
+	}
+
+	.on-dark .eyebrow {
+		color: var(--mist);
+	}
+
+	.on-dark .eyebrow::before {
+		background: var(--yellow);
+	}
+
+	.section-title {
+		font-size: clamp(2.1rem, 4.2vw, 3.6rem);
+	}
+
+	.lead {
+		font-size: 0.9375rem;
+		line-height: 1.7;
+		color: color-mix(in srgb, var(--ink) 65%, transparent);
+	}
+
+	.pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.3rem 0.8rem;
+		border: 1px solid var(--line);
+		border-radius: 999px;
+		font-size: 0.75rem;
+		line-height: 1.3;
+		white-space: nowrap;
+	}
+
+	.on-dark .pill {
+		border-color: rgba(243, 241, 236, 0.3);
+		background: rgba(20, 22, 25, 0.25);
+		color: var(--cream);
+		backdrop-filter: blur(8px);
+	}
+
+	.card {
+		border: 1px solid var(--line);
+		border-radius: var(--radius-card);
+		background: var(--paper);
+	}
+
+	/* Buttons */
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.5rem 0.5rem 0.5rem 1.25rem;
+		border: 1px solid transparent;
+		border-radius: 999px;
+		font: 500 0.875rem / 1.2 var(--font-body);
+		text-decoration: none;
+		cursor: pointer;
+		transition:
+			background-color 0.3s,
+			color 0.3s,
+			border-color 0.3s;
+	}
+
+	.btn-arrow {
+		display: grid;
+		place-items: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: 50%;
+		transition: transform 0.3s var(--ease-out);
+	}
+
+	.btn:hover .btn-arrow {
+		transform: rotate(-45deg);
+	}
+
+	.btn-dark {
+		background: var(--ink);
+		color: var(--cream);
+	}
+
+	.btn-dark .btn-arrow {
+		background: var(--cream);
+		color: var(--ink);
+	}
+
+	.btn-dark:hover {
+		background: var(--purple);
+	}
+
+	.btn-light {
+		background: var(--cream);
+		color: var(--ink);
+	}
+
+	.btn-light .btn-arrow {
+		background: var(--ink);
+		color: var(--cream);
+	}
+
+	.btn-light:hover {
+		background: var(--yellow);
+	}
+
+	.btn-ghost {
+		padding-right: 1.25rem;
+		border-color: var(--line);
+	}
+
+	.on-dark .btn-ghost {
+		border-color: rgba(243, 241, 236, 0.3);
+		color: var(--cream);
+	}
+
+	.btn-ghost:hover {
+		border-color: currentColor;
+	}
+
+	.link-underline {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.875rem;
+		font-weight: 500;
+		text-decoration: underline;
+		text-decoration-thickness: 1px;
+		text-underline-offset: 0.35em;
+		text-decoration-color: var(--line);
+		transition: text-decoration-color 0.3s;
+	}
+
+	.link-underline:hover {
+		text-decoration-color: currentColor;
+	}
+
+	/* Scroll reveal: only hide when JS can bring it back. */
+	.js [data-reveal] {
+		opacity: 0;
+		transform: translateY(1.25rem);
+		transition:
+			opacity 0.9s var(--ease-out),
+			transform 0.9s var(--ease-out);
+		transition-delay: var(--reveal-delay, 0ms);
+	}
+
+	.js [data-reveal].is-visible {
+		opacity: 1;
+		transform: none;
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
+	}
+
+	.skip-link {
+		position: fixed;
+		top: 1rem;
+		left: 1rem;
+		z-index: 100;
+		padding: 0.5rem 1rem;
+		border-radius: 999px;
+		background: var(--ink);
+		color: var(--cream);
+		transform: translateY(-200%);
+	}
+
+	.skip-link:focus {
+		transform: none;
+	}
+
+	:focus-visible {
+		outline: 2px solid var(--purple);
+		outline-offset: 3px;
+	}
+
+	.on-dark :focus-visible {
+		outline-color: var(--yellow);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		html {
+			scroll-behavior: auto;
+		}
+
+		*,
+		*::before,
+		*::after {
+			animation: none !important;
+			transition: none !important;
+		}
+
+		.js [data-reveal] {
+			opacity: 1;
+			transform: none;
+		}
+	}
+</style>

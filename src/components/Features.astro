@@ -1,0 +1,199 @@
+---
+import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
+import aboutBg from '../assets/about-bg.png';
+---
+
+<section id="beneficios" class="container section">
+	<div class="heading" data-reveal>
+		<div>
+			<p class="eyebrow">Por qué Bigway</p>
+			<h2 class="section-title">Tecnología de primer mundo, <span class="accent">atención cercana.</span></h2>
+		</div>
+		<p class="lead">
+			Fibra óptica, un call center profesional y técnicos propios. Todo desde nuestras oficinas en
+			Mendoza.
+		</p>
+	</div>
+
+	<div class="grid">
+		<article class="card feature" data-reveal>
+			<div class="top">
+				<span class="index">01</span>
+				<span class="badge"><Icon name="rocket" size={20} /></span>
+			</div>
+			<div>
+				<h3>Fibra óptica</h3>
+				<p>Última tecnología en Internet, usada en el primer mundo.</p>
+			</div>
+		</article>
+
+		<article class="feature dark on-dark" data-reveal style="--reveal-delay: 80ms">
+			<div class="top">
+				<span class="index">02</span>
+				<span class="badge dashed"><Icon name="headphones" size={20} /></span>
+			</div>
+			<div>
+				<h3>Call center</h3>
+				<p>Profesionales de alta calidad para atenderte cuando lo necesites.</p>
+			</div>
+		</article>
+
+		<article class="card feature photo" data-reveal style="--reveal-delay: 160ms">
+			<Image src={aboutBg} alt="" widths={[400, 640]} sizes="(min-width: 1024px) 340px, 50vw" />
+			<div class="photo-body">
+				<span class="index">03</span>
+				<h3>Oficinas en Mendoza</h3>
+				<p>Estamos en San José, Guaymallén. Vení a conocernos.</p>
+			</div>
+		</article>
+
+		<article class="feature brand" data-reveal style="--reveal-delay: 240ms">
+			<div class="top">
+				<span class="index">04</span>
+				<span class="badge"><Icon name="phone" size={20} /></span>
+			</div>
+			<div>
+				<h3>Servicio técnico</h3>
+				<p>Profesionales capacitados para resolver cualquier inconveniente.</p>
+			</div>
+		</article>
+	</div>
+</section>
+
+<style>
+	.heading {
+		display: grid;
+		grid-template-columns: repeat(12, 1fr);
+		align-items: end;
+		gap: 1.5rem;
+	}
+
+	.heading > div {
+		grid-column: span 7;
+	}
+
+	.heading h2 {
+		margin-top: 1rem;
+	}
+
+	.heading .lead {
+		grid-column: 9 / span 4;
+	}
+
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 0.75rem;
+		margin-top: 3rem;
+	}
+
+	.feature {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		gap: 2rem;
+		min-height: 20rem;
+		padding: 1.5rem;
+		border-radius: var(--radius-card);
+	}
+
+	.feature h3 {
+		font-size: 1.75rem;
+	}
+
+	.feature p {
+		margin-top: 0.75rem;
+		font-size: 0.875rem;
+		line-height: 1.65;
+		color: color-mix(in srgb, var(--ink) 65%, transparent);
+	}
+
+	.top {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.index {
+		font-size: 0.75rem;
+		color: var(--muted);
+	}
+
+	.badge {
+		display: grid;
+		place-items: center;
+		width: 3.5rem;
+		height: 3.5rem;
+		border: 1px solid var(--line);
+		border-radius: 50%;
+		color: var(--purple);
+	}
+
+	.dark {
+		background: var(--ink);
+		color: var(--cream);
+	}
+
+	.dark p,
+	.dark .index {
+		color: var(--mist);
+	}
+
+	.dashed {
+		border: 1px dashed color-mix(in srgb, var(--mist) 50%, transparent);
+		color: var(--yellow);
+	}
+
+	.photo {
+		padding: 0.5rem;
+		gap: 0;
+		overflow: hidden;
+	}
+
+	.photo img {
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		border-radius: calc(var(--radius-card) - 0.4rem);
+		object-fit: cover;
+	}
+
+	.photo-body {
+		padding: 1rem;
+	}
+
+	.photo h3 {
+		margin-top: 0.5rem;
+	}
+
+	.brand {
+		background: var(--purple-soft);
+	}
+
+	.brand .badge {
+		border-color: color-mix(in srgb, var(--purple) 25%, transparent);
+	}
+
+	@media (max-width: 1100px) {
+		.grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (max-width: 900px) {
+		.heading > div,
+		.heading .lead {
+			grid-column: 1 / -1;
+		}
+	}
+
+	@media (max-width: 600px) {
+		.grid {
+			grid-template-columns: 1fr;
+		}
+
+		.feature {
+			min-height: 16rem;
+		}
+	}
+</style>

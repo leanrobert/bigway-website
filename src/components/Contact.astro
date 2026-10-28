@@ -1,0 +1,162 @@
+---
+import Icon from './Icon.astro';
+import { whatsappUrl } from '../data/site';
+
+// The old WordPress site handled this with Contact Form 7. Until a backend is
+// defined, the form posts to whatever PUBLIC_CONTACT_FORM_ACTION points to.
+const action = import.meta.env.PUBLIC_CONTACT_FORM_ACTION;
+
+const fields = [
+	{ name: 'name', label: 'Nombre completo', type: 'text', autocomplete: 'name', wide: true },
+	{ name: 'phone', label: 'Número de teléfono', type: 'tel', autocomplete: 'tel', wide: false },
+	{ name: 'department', label: 'Departamento', type: 'text', autocomplete: 'address-level2', wide: false },
+] as const;
+---
+
+<section id="contactanos" class="section panel-wrap">
+	<div class="panel on-dark">
+		<div class="intro" data-reveal>
+			<p class="eyebrow">Contacto</p>
+			<h2 class="section-title">Hablemos de <span class="accent">tu conexión.</span></h2>
+			<p class="text">
+				Dejanos tus datos y te contactamos para contarte qué planes llegan a tu domicilio. Si
+				preferís, escribinos directo.
+			</p>
+			<div class="ctas">
+				<a href={whatsappUrl} class="btn btn-light" target="_blank" rel="noopener">
+					Escribinos por WhatsApp
+					<span class="btn-arrow"><Icon name="arrow" size={13} /></span>
+				</a>
+			</div>
+			<p class="where"><Icon name="pin" size={16} /> Oficinas en San José, Guaymallén, Mendoza</p>
+		</div>
+
+		<form class="form" method="post" action={action} data-reveal style="--reveal-delay: 120ms">
+			{
+				fields.map((f) => (
+					<label class:list={{ wide: f.wide }}>
+						<span>{f.label}</span>
+						<input
+							type={f.type}
+							name={f.name}
+							autocomplete={f.autocomplete}
+							maxlength="400"
+							required
+						/>
+					</label>
+				))
+			}
+			<button class="btn btn-dark wide" type="submit">
+				Enviar consulta
+				<span class="btn-arrow"><Icon name="arrow" size={13} /></span>
+			</button>
+		</form>
+	</div>
+</section>
+
+<style>
+	.panel-wrap {
+		padding-inline: clamp(0.625rem, 1.4vw, 1.25rem);
+	}
+
+	.panel {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		align-items: center;
+		gap: clamp(2rem, 5vw, 5rem);
+		padding: clamp(1.5rem, 5vw, 5rem);
+		border-radius: var(--radius-panel);
+		background:
+			radial-gradient(ellipse at 0% 100%, rgba(111, 45, 145, 0.55), transparent 55%),
+			var(--ink);
+		color: var(--cream);
+	}
+
+	.section-title {
+		margin-top: 1rem;
+	}
+
+	.text {
+		max-width: 28rem;
+		margin-top: 1.25rem;
+		font-size: 0.9375rem;
+		line-height: 1.7;
+		color: var(--mist);
+	}
+
+	.ctas {
+		margin-top: 2rem;
+	}
+
+	.where {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-top: 2rem;
+		font-size: 0.8125rem;
+		color: var(--mist);
+	}
+
+	.form {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+		padding: clamp(1.25rem, 3vw, 2rem);
+		border-radius: var(--radius-card);
+		background: var(--paper);
+		color: var(--ink);
+	}
+
+	.wide {
+		grid-column: 1 / -1;
+	}
+
+	label {
+		display: grid;
+		gap: 0.35rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+		letter-spacing: 0.04em;
+		color: var(--muted);
+	}
+
+	input {
+		width: 100%;
+		padding: 0.75rem 1rem;
+		border: 1px solid var(--line);
+		border-radius: 0.875rem;
+		font: 400 0.9375rem var(--font-body);
+		color: var(--ink);
+		background: var(--cream);
+		transition:
+			border-color 0.2s,
+			background-color 0.2s;
+	}
+
+	input:focus {
+		outline: none;
+		border-color: var(--purple);
+		background: var(--paper);
+	}
+
+	.form .btn {
+		justify-content: space-between;
+		margin-top: 0.5rem;
+	}
+
+	.form :focus-visible {
+		outline-color: var(--purple);
+	}
+
+	@media (max-width: 900px) {
+		.panel {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (max-width: 520px) {
+		.form {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

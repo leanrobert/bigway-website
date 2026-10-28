@@ -1,0 +1,240 @@
+---
+import Icon from './Icon.astro';
+import { plans, whatsappUrl } from '../data/site';
+
+const formatPrice = (value: number) =>
+	new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(value);
+---
+
+<section id="planesfo" class="container section">
+	<div class="heading" data-reveal>
+		<div>
+			<p class="eyebrow">Planes</p>
+			<h2 class="section-title">Fibra óptica simétrica. <span class="accent">Elegí tu velocidad.</span></h2>
+		</div>
+		<p class="lead">
+			Todos los planes tienen la misma velocidad de bajada y de subida, para que subir archivos o
+			hacer videollamadas sea tan rápido como descargar.
+		</p>
+	</div>
+
+	<ul class="grid">
+		{
+			plans.map((plan, i) => (
+				<li
+					class:list={['plan', plan.featured ? 'dark on-dark' : 'card']}
+					data-reveal
+					style={`--reveal-delay: ${i * 80}ms`}
+				>
+					<div class="top">
+						<h3>Plan {plan.name}</h3>
+						<span class="index">0{i + 1}</span>
+					</div>
+					<p class="speed">
+						{plan.speed}
+						<span>MB</span>
+					</p>
+					<div>
+						<p class="caption">
+							{plan.featured ? <span class="badge">Más elegido</span> : 'Velocidad simétrica'}
+						</p>
+						<div class="action">
+							{plan.price !== null && (
+								<p class="price">
+									{formatPrice(plan.price)}
+									<span>/mes</span>
+								</p>
+							)}
+							<a href="#contactanos" class:list={['btn', plan.featured ? 'btn-light' : 'btn-dark']}>
+								Solicitar<span class="sr-only"> plan {plan.name}</span>
+								<span class="btn-arrow"><Icon name="arrow" size={13} /></span>
+							</a>
+						</div>
+					</div>
+				</li>
+			))
+		}
+	</ul>
+
+	<p class="help" data-reveal>
+		¿No sabés qué plan elegir?
+		<a href={whatsappUrl} class="link-underline" target="_blank" rel="noopener">
+			Escribinos por WhatsApp <Icon name="arrow" size={14} />
+		</a>
+	</p>
+</section>
+
+<style>
+	.heading {
+		display: grid;
+		grid-template-columns: repeat(12, 1fr);
+		align-items: end;
+		gap: 1.5rem;
+	}
+
+	.heading > div {
+		grid-column: span 7;
+	}
+
+	.heading h2 {
+		margin-top: 1rem;
+	}
+
+	.heading .lead {
+		grid-column: 9 / span 4;
+	}
+
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 0.75rem;
+		margin-top: 3rem;
+	}
+
+	.plan {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		gap: 2rem;
+		min-height: 22rem;
+		padding: 1.5rem;
+		border-radius: var(--radius-card);
+	}
+
+	.dark {
+		border: 1px solid var(--ink);
+		background: var(--ink);
+		color: var(--cream);
+	}
+
+	.top {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+	}
+
+	.top h3 {
+		font-family: var(--font-body);
+		font-size: 0.75rem;
+		font-weight: 500;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+	}
+
+	.index {
+		font-size: 0.75rem;
+		color: var(--muted);
+	}
+
+	.speed {
+		font-family: var(--font-display);
+		font-size: clamp(4.5rem, 7vw, 6.5rem);
+		font-weight: 500;
+		line-height: 0.9;
+		letter-spacing: -0.06em;
+	}
+
+	.speed span {
+		font-size: 0.3em;
+		letter-spacing: -0.02em;
+		color: var(--purple);
+	}
+
+	.dark .speed span {
+		color: var(--yellow);
+	}
+
+	.caption {
+		margin-bottom: 1rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--line);
+		font-size: 0.8125rem;
+		color: var(--muted);
+	}
+
+	.dark .caption,
+	.dark .index {
+		border-color: rgba(243, 241, 236, 0.15);
+		color: var(--mist);
+	}
+
+	/* Price shares the button's row, so adding it doesn't make the card taller. */
+	.action {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+	}
+
+	.price {
+		font-family: var(--font-display);
+		font-size: 1.5rem;
+		font-weight: 500;
+		line-height: 1;
+		letter-spacing: -0.03em;
+		white-space: nowrap;
+	}
+
+	.price span {
+		margin-left: 0.15rem;
+		font-family: var(--font-body);
+		font-size: 0.75rem;
+		font-weight: 400;
+		letter-spacing: 0;
+		color: var(--muted);
+	}
+
+	.dark .price span {
+		color: var(--mist);
+	}
+
+	/* Sized to sit on the caption's line so the featured card keeps the same height. */
+	.badge {
+		display: inline-block;
+		vertical-align: top;
+		padding: 0.3rem 0.65rem;
+		border-radius: 999px;
+		background: var(--yellow);
+		line-height: 1;
+		color: var(--ink);
+	}
+
+	.help {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		margin-top: 2.5rem;
+		font-size: 0.9375rem;
+		color: var(--muted);
+	}
+
+	.help a {
+		color: var(--ink);
+	}
+
+	@media (max-width: 1100px) {
+		.grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (max-width: 900px) {
+		.heading > div,
+		.heading .lead {
+			grid-column: 1 / -1;
+		}
+	}
+
+	@media (max-width: 520px) {
+		.grid {
+			grid-template-columns: 1fr;
+		}
+
+		.plan {
+			min-height: 18rem;
+		}
+	}
+</style>

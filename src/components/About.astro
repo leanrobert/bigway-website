@@ -1,0 +1,117 @@
+---
+const pillars = [
+	{
+		title: 'Misión',
+		text: 'Proveer calidad de vida a nuestros clientes, a través de una conexión a Internet veloz que les permita desenvolverse en el mundo globalizado con una gran comodidad.',
+	},
+	{
+		title: 'Visión',
+		text: 'Ser la empresa de Internet que provea el mejor servicio a lo largo de todo el país.',
+	},
+	{
+		title: 'Valores',
+		text: 'Trabajamos con seriedad y compromiso. Priorizamos la calidad de nuestro servicio y la atención personalizada a nuestros clientes.',
+	},
+];
+---
+
+<section id="somos" class="container section about">
+	<div class="label" data-reveal>
+		<p class="eyebrow">Nosotros</p>
+	</div>
+
+	<div class="body">
+		<h2 class="statement" data-reveal>
+			Proveemos Internet a hogares y empresas, <span class="accent">anteponiendo su bienestar{" "}</span>
+			<span class="fade-text">
+				y su conexión con el mundo. Distintos planes para cada cliente, con la misma atención.
+			</span>
+		</h2>
+
+		<ul class="pillars">
+			{
+				pillars.map((p, i) => (
+					<li data-reveal style={`--reveal-delay: ${i * 80}ms`}>
+						<span class="index">0{i + 1}</span>
+						<h3>{p.title}</h3>
+						<p class="lead">{p.text}</p>
+					</li>
+				))
+			}
+		</ul>
+	</div>
+</section>
+
+<style>
+	.about {
+		display: grid;
+		grid-template-columns: repeat(12, 1fr);
+		gap: 2rem;
+	}
+
+	.label {
+		grid-column: span 3;
+	}
+
+	.body {
+		grid-column: span 9;
+	}
+
+	.statement {
+		font-size: clamp(1.9rem, 3.8vw, 3.4rem);
+		line-height: 1.08;
+	}
+
+	.fade-text {
+		color: color-mix(in srgb, var(--ink) 30%, transparent);
+	}
+
+	/* Where supported, the trailing sentence darkens as it scrolls into view. */
+	@supports (animation-timeline: view()) {
+		.fade-text {
+			animation: ink-in linear both;
+			animation-timeline: view();
+			animation-range: entry 20% cover 45%;
+		}
+
+		@keyframes ink-in {
+			to {
+				color: var(--ink);
+			}
+		}
+	}
+
+	.pillars {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 2.5rem;
+		margin-top: 3.5rem;
+	}
+
+	.pillars li {
+		padding-top: 1.25rem;
+		border-top: 1px solid var(--line);
+	}
+
+	.index {
+		font-size: 0.75rem;
+		color: var(--muted);
+	}
+
+	.pillars h3 {
+		margin: 0.5rem 0 0.75rem;
+		font-size: 1.5rem;
+	}
+
+	@media (max-width: 900px) {
+		.label,
+		.body {
+			grid-column: 1 / -1;
+		}
+
+		.pillars {
+			grid-template-columns: 1fr;
+			gap: 1.5rem;
+		}
+	}
+</style>

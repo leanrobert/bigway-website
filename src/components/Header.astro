@@ -1,0 +1,202 @@
+---
+import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
+import { navLinks, whatsappUrl } from '../data/site';
+import logo from '../assets/logo.png';
+---
+
+<header class="header">
+	<div class="container bar">
+		<a href="#main" class="brand" aria-label="Bigway, inicio">
+			<Image src={logo} alt="" width={120} loading="eager" />
+		</a>
+
+		<nav aria-label="Principal" class="nav">
+			<ul>
+				{
+					navLinks.map((link) => (
+						<li>
+							<a href={link.href}>{link.label}</a>
+						</li>
+					))
+				}
+			</ul>
+		</nav>
+
+		<div class="actions">
+			<a href={whatsappUrl} class="btn btn-dark cta" target="_blank" rel="noopener">
+				Escribinos
+				<span class="btn-arrow"><Icon name="arrow" size={13} /></span>
+			</a>
+
+			<details class="mobile-menu">
+				<summary aria-label="Abrir menú">
+					<Icon name="menu" size={18} class="icon-open" />
+					<Icon name="close" size={18} class="icon-close" />
+				</summary>
+				<nav aria-label="Móvil" class="mobile-panel">
+					<ul class="container">
+						{
+							navLinks.map((link) => (
+								<li>
+									<a href={link.href}>{link.label}</a>
+								</li>
+							))
+						}
+					</ul>
+					<div class="container mobile-cta">
+						<a href={whatsappUrl} class="btn btn-dark" target="_blank" rel="noopener">
+							Escribinos por WhatsApp
+							<span class="btn-arrow"><Icon name="arrow" size={13} /></span>
+						</a>
+					</div>
+				</nav>
+			</details>
+		</div>
+	</div>
+</header>
+
+<script>
+	const menu = document.querySelector<HTMLDetailsElement>('.mobile-menu');
+	const summary = menu?.querySelector('summary');
+
+	menu?.addEventListener('toggle', () => {
+		document.documentElement.style.overflow = menu.open ? 'hidden' : '';
+		summary?.setAttribute('aria-label', menu.open ? 'Cerrar menú' : 'Abrir menú');
+	});
+
+	menu?.querySelectorAll('a').forEach((link) => link.addEventListener('click', () => (menu.open = false)));
+
+	document.addEventListener('keydown', (event) => {
+		if (event.key === 'Escape' && menu?.open) menu.open = false;
+	});
+</script>
+
+<style>
+	.header {
+		position: sticky;
+		top: 0;
+		z-index: 50;
+		border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+		background: color-mix(in srgb, var(--cream) 85%, transparent);
+		backdrop-filter: blur(12px);
+	}
+
+	.bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1.5rem;
+		height: 4rem;
+	}
+
+	.brand img {
+		width: 96px;
+	}
+
+	.nav ul {
+		display: flex;
+		gap: 0.25rem;
+	}
+
+	.nav a {
+		display: inline-flex;
+		padding: 0.5rem 0.875rem;
+		border-radius: 999px;
+		font-size: 0.8125rem;
+		color: color-mix(in srgb, var(--ink) 70%, transparent);
+		text-decoration: none;
+		transition:
+			background-color 0.2s,
+			color 0.2s;
+	}
+
+	.nav a:hover {
+		background: var(--paper);
+		color: var(--ink);
+	}
+
+	.actions {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.cta {
+		padding-block: 0.3rem;
+	}
+
+	.mobile-menu {
+		display: none;
+	}
+
+	.mobile-menu summary {
+		display: grid;
+		place-items: center;
+		width: 2.5rem;
+		height: 2.5rem;
+		border: 1px solid var(--line);
+		border-radius: 50%;
+		background: var(--paper);
+		list-style: none;
+		cursor: pointer;
+	}
+
+	.mobile-menu summary::-webkit-details-marker {
+		display: none;
+	}
+
+	/* The icons render in a child component, outside this file's style scope. */
+	summary :global(.icon-close),
+	.mobile-menu[open] :global(.icon-open) {
+		display: none;
+	}
+
+	.mobile-menu[open] :global(.icon-close) {
+		display: block;
+	}
+
+	/* Explicit height: the header's backdrop-filter is the containing block for this fixed panel. */
+	.mobile-panel {
+		position: fixed;
+		inset-inline: 0;
+		top: 4rem;
+		height: calc(100dvh - 4rem);
+		overflow-y: auto;
+		border-top: 1px solid var(--line);
+		background: var(--cream);
+	}
+
+	.mobile-panel ul {
+		padding-block: 1.5rem;
+	}
+
+	.mobile-panel li + li {
+		border-top: 1px solid var(--line);
+	}
+
+	.mobile-panel ul a {
+		display: block;
+		padding-block: 0.875rem;
+		font-family: var(--font-display);
+		font-size: 1.875rem;
+		letter-spacing: -0.03em;
+		text-decoration: none;
+	}
+
+	@media (max-width: 900px) {
+		.nav {
+			display: none;
+		}
+
+		.mobile-menu {
+			display: block;
+		}
+	}
+
+	@media (max-width: 520px) {
+		.cta {
+			display: none;
+		}
+	}
+</style>
