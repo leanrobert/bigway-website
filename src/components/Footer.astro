@@ -1,6 +1,6 @@
 ---
 import Icon from './Icon.astro';
-import { navLinks, whatsappUrl } from '../data/site';
+import { navLinks, office, whatsappUrl } from '../data/site';
 
 const year = new Date().getFullYear();
 ---
@@ -27,7 +27,7 @@ const year = new Date().getFullYear();
 	</div>
 	<div class="bottom">
 		<p>© {year} Bigway</p>
-		<p>San José, Guaymallén, Mendoza</p>
+		<p>{office.building}, {office.street}, {office.city}</p>
 	</div>
 </footer>
 

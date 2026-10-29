@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import Icon from './Icon.astro';
 import aboutBg from '../assets/about-bg.png';
+import { office } from '../data/site';
 ---
 
 <section id="beneficios" class="container section">
@@ -44,7 +45,10 @@ import aboutBg from '../assets/about-bg.png';
 			<div class="photo-body">
 				<span class="index">03</span>
 				<h3>Oficinas en Mendoza</h3>
-				<p>Estamos en San José, Guaymallén. Vení a conocernos.</p>
+				<p>Estamos en {office.building}, {office.street}. Vení a conocernos.</p>
+				<a href={office.mapsUrl} class="link-underline" target="_blank" rel="noopener">
+					Cómo llegar <Icon name="arrow-up-right" size={12} />
+				</a>
 			</div>
 		</article>
 
@@ -164,6 +168,10 @@ import aboutBg from '../assets/about-bg.png';
 
 	.photo h3 {
 		margin-top: 0.5rem;
+	}
+
+	.photo .link-underline {
+		margin-top: 0.75rem;
 	}
 
 	.brand {

@@ -1,8 +1,21 @@
 // @ts-check
-import { defineConfig, fontProviders } from 'astro/config';
+import { defineConfig, envField, fontProviders } from 'astro/config';
+import node from '@astrojs/node';
 
 // https://astro.build/config
 export default defineConfig({
+	// Pages stay prerendered; the adapter only serves on-demand parts (the live reviews island).
+	adapter: node({ mode: 'standalone' }),
+	env: {
+		schema: {
+			// Google Business Profile API (reviews). Without them the curated reviews in site.ts are shown.
+			GBP_CLIENT_ID: envField.string({ context: 'server', access: 'secret', optional: true }),
+			GBP_CLIENT_SECRET: envField.string({ context: 'server', access: 'secret', optional: true }),
+			GBP_REFRESH_TOKEN: envField.string({ context: 'server', access: 'secret', optional: true }),
+			/** Format: accounts/{accountId}/locations/{locationId} */
+			GBP_LOCATION: envField.string({ context: 'server', access: 'secret', optional: true }),
+		},
+	},
 	fonts: [
 		{
 			provider: fontProviders.fontshare(),

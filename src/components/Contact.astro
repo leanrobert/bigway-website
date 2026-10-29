@@ -1,10 +1,10 @@
 ---
 import Icon from './Icon.astro';
-import { whatsappUrl } from '../data/site';
+import { office, whatsappNumber, whatsappUrl } from '../data/site';
 
-// The old WordPress site handled this with Contact Form 7. Until a backend is
-// defined, the form posts to whatever PUBLIC_CONTACT_FORM_ACTION points to.
-const action = import.meta.env.PUBLIC_CONTACT_FORM_ACTION;
+// No backend: the form opens a WhatsApp chat with the answers as a prefilled message.
+// Without JS it still opens the chat, just without the text.
+const chatUrl = `https://wa.me/${whatsappNumber}`;
 
 const fields = [
 	{ name: 'name', label: 'Nombre completo', type: 'text', autocomplete: 'name', wide: true },
@@ -22,16 +22,21 @@ const fields = [
 				Dejanos tus datos y te contactamos para contarte qué planes llegan a tu domicilio. Si
 				preferís, escribinos directo.
 			</p>
-			<div class="ctas">
-				<a href={whatsappUrl} class="btn btn-light" target="_blank" rel="noopener">
-					Escribinos por WhatsApp
-					<span class="btn-arrow"><Icon name="arrow" size={13} /></span>
-				</a>
-			</div>
-			<p class="where"><Icon name="pin" size={16} /> Oficinas en San José, Guaymallén, Mendoza</p>
+			<a href={office.mapsUrl} class="where" target="_blank" rel="noopener">
+				<Icon name="pin" size={16} />
+				{office.building}, {office.street}, {office.city}
+			</a>
 		</div>
 
-		<form class="form" method="post" action={action} data-reveal style="--reveal-delay: 120ms">
+		<form
+			class="form"
+			method="get"
+			action={chatUrl}
+			target="_blank"
+			data-contact-form
+			data-reveal
+			style="--reveal-delay: 120ms"
+		>
 			{
 				fields.map((f) => (
 					<label class:list={{ wide: f.wide }}>
@@ -46,13 +51,37 @@ const fields = [
 					</label>
 				))
 			}
-			<button class="btn btn-dark wide" type="submit">
-				Enviar consulta
-				<span class="btn-arrow"><Icon name="arrow" size={13} /></span>
-			</button>
+			<div class="submit wide">
+				<p class="note">Todos los campos son obligatorios. Se abre WhatsApp con tu mensaje listo.</p>
+				<button class="btn btn-dark" type="submit">
+					Enviar por WhatsApp
+					<span class="btn-arrow"><Icon name="arrow" size={13} /></span>
+				</button>
+			</div>
 		</form>
 	</div>
 </section>
+
+<script>
+	const form = document.querySelector<HTMLFormElement>('[data-contact-form]');
+
+	form?.addEventListener('submit', (event) => {
+		event.preventDefault();
+		const data = new FormData(form);
+		const value = (name: string) => String(data.get(name) ?? '').trim();
+
+		const text = [
+			'¡Hola! Quiero más información sobre el servicio de Bigway',
+			`Mi nombre es: ${value('name')}`,
+			`Mi teléfono es: ${value('phone')}`,
+			`Vivo en: ${value('department')}`,
+		].join('\n');
+
+		const url = new URL(form.action);
+		url.search = new URLSearchParams({ text }).toString();
+		window.open(url, '_blank', 'noopener');
+	});
+</script>
 
 <style>
 	.panel-wrap {
@@ -95,6 +124,18 @@ const fields = [
 		margin-top: 2rem;
 		font-size: 0.8125rem;
 		color: var(--mist);
+		text-decoration: underline;
+		text-decoration-thickness: 1px;
+		text-underline-offset: 0.35em;
+		text-decoration-color: transparent;
+		transition:
+			color 0.3s,
+			text-decoration-color 0.3s;
+	}
+
+	.where:hover {
+		color: var(--cream);
+		text-decoration-color: currentColor;
 	}
 
 	.form {
@@ -139,9 +180,21 @@ const fields = [
 		background: var(--paper);
 	}
 
-	.form .btn {
+	/* Same footer pattern as the plan cards: supporting text left, action right. */
+	.submit {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
 		justify-content: space-between;
+		gap: 0.75rem;
 		margin-top: 0.5rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--line);
+	}
+
+	.note {
+		font-size: 0.8125rem;
+		color: var(--muted);
 	}
 
 	.form :focus-visible {
@@ -157,6 +210,12 @@ const fields = [
 	@media (max-width: 520px) {
 		.form {
 			grid-template-columns: 1fr;
+		}
+
+		/* Full-width tap target on phones. */
+		.submit .btn {
+			flex: 1;
+			justify-content: space-between;
 		}
 	}
 </style>

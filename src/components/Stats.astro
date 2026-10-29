@@ -1,0 +1,99 @@
+---
+import { stats } from '../data/site';
+
+const formatNumber = (value: number) => new Intl.NumberFormat('es-AR').format(value);
+---
+
+<section class="container stats" aria-label="Bigway en números">
+	<ul class="grid">
+		{
+			stats.map((stat, i) => (
+				<li data-reveal style={`--reveal-delay: ${i * 80}ms`}>
+					<p class="value">
+						{stat.prefix && <span class="accent">{stat.prefix}</span>}
+						{typeof stat.value === 'number' ? (
+							<span data-count={stat.value}>{formatNumber(stat.value)}</span>
+						) : (
+							stat.value
+						)}
+						{stat.unit && <span class="unit">{stat.unit}</span>}
+					</p>
+					<p class="label">{stat.label}</p>
+				</li>
+			))
+		}
+	</ul>
+</section>
+
+<script>
+	// Count numeric stats up from zero the first time they scroll into view.
+	const counters = document.querySelectorAll<HTMLElement>('[data-count]');
+	const format = new Intl.NumberFormat('es-AR');
+
+	if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		const observer = new IntersectionObserver((entries) => {
+			for (const entry of entries) {
+				if (!entry.isIntersecting) continue;
+				observer.unobserve(entry.target);
+
+				const el = entry.target as HTMLElement;
+				const target = Number(el.dataset.count);
+				const start = performance.now();
+				const tick = (now: number) => {
+					const t = Math.min(1, (now - start) / 1600);
+					el.textContent = format.format(Math.round(target * (1 - (1 - t) ** 3)));
+					if (t < 1) requestAnimationFrame(tick);
+				};
+				requestAnimationFrame(tick);
+			}
+		});
+		counters.forEach((counter) => observer.observe(counter));
+	}
+</script>
+
+<style>
+	.stats {
+		margin-top: clamp(3rem, 6vw, 5rem);
+	}
+
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 2.5rem;
+	}
+
+	.grid li {
+		padding-top: 1.25rem;
+		border-top: 1px solid var(--line);
+	}
+
+	.value {
+		font-family: var(--font-display);
+		font-size: clamp(2.75rem, 4.2vw, 4.25rem);
+		font-weight: 500;
+		font-variant-numeric: tabular-nums;
+		line-height: 1;
+		letter-spacing: -0.05em;
+		white-space: nowrap;
+	}
+
+	.unit {
+		margin-left: 0.15em;
+		font-size: 0.4em;
+		letter-spacing: -0.02em;
+		color: var(--purple);
+	}
+
+	.label {
+		margin-top: 0.75rem;
+		font-size: 0.875rem;
+		color: var(--muted);
+	}
+
+	@media (max-width: 900px) {
+		.grid {
+			grid-template-columns: 1fr;
+			gap: 1.5rem;
+		}
+	}
+</style>

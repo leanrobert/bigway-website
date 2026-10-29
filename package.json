@@ -9,9 +9,19 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "start": "node --env-file-if-exists=.env ./dist/server/entry.mjs",
+    "coverage": "node scripts/coverage.mjs",
+    "gbp:locations": "node --env-file-if-exists=.env scripts/gbp-locations.mjs",
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^7.4.2"
+    "@astrojs/node": "11.1.9",
+    "astro": "^7.4.2",
+    "maplibre-gl": "6.13.0"
+  },
+  "devDependencies": {
+    "@tmcw/togeojson": "7.1.3",
+    "@xmldom/xmldom": "0.9.12",
+    "fflate": "0.8.3"
   }
 }

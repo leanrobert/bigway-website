@@ -2,24 +2,41 @@
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
+import Stats from '../components/Stats.astro';
 import About from '../components/About.astro';
 import Features from '../components/Features.astro';
 import Plans from '../components/Plans.astro';
+import Coverage from '../components/Coverage.astro';
+import Reviews from '../components/Reviews.astro';
+import ReviewsView from '../components/ReviewsView.astro';
+import { reviewSummary, reviews } from '../data/site';
+import Faq from '../components/Faq.astro';
 import Contact from '../components/Contact.astro';
 import Footer from '../components/Footer.astro';
+import WhatsAppButton from '../components/WhatsAppButton.astro';
 ---
 
 <Layout
 	title="Bigway · Internet por fibra óptica en Mendoza"
-	description="Internet por fibra óptica para hogares y empresas en Mendoza. Planes de 25 a 300 MB simétricos, call center y servicio técnico propio."
+	description="Internet por fibra óptica para tu hogar en Mendoza. Fibra simétrica hasta 600 MB, Internet wireless y combos con TV, call center y servicio técnico propio."
 >
 	<Header />
 	<main id="main">
 		<Hero />
+		<Stats />
+		<Plans />
+		<Coverage />
 		<About />
 		<Features />
-		<Plans />
+		{/* Live Google reviews load after the page; the curated ones show meanwhile. */}
+		<div data-reveal>
+			<Reviews server:defer>
+				<ReviewsView slot="fallback" summary={reviewSummary} reviews={reviews} />
+			</Reviews>
+		</div>
+		<Faq />
 		<Contact />
 	</main>
 	<Footer />
+	<WhatsAppButton />
 </Layout>

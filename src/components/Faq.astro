@@ -1,0 +1,176 @@
+---
+import Icon from './Icon.astro';
+import { whatsappUrl } from '../data/site';
+
+const faqs = [
+	{
+		question: '¿Cómo puedo contratar el servicio?',
+		answer: '¡Es muy fácil! Contactanos a través de nuestro WhatsApp y te ayudamos a gestionar tu solicitud de contratación en el momento.',
+	},
+	{
+		question: '¿Cuánto demora la instalación?',
+		answer: 'Una vez realizada la solicitud, la instalación demora aproximadamente 3 días hábiles.',
+	},
+	{
+		question: '¿Hay permanencia mínima?',
+		answer: '¡No! En Bigway no tenés permanencia mínima. Disfrutá de nuestro servicio con total libertad.',
+	},
+];
+
+// FAQPage structured data so Google can show these answers in search results.
+const schema = {
+	'@context': 'https://schema.org',
+	'@type': 'FAQPage',
+	mainEntity: faqs.map((faq) => ({
+		'@type': 'Question',
+		name: faq.question,
+		acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+	})),
+};
+---
+
+<script is:inline type="application/ld+json" set:html={JSON.stringify(schema)} />
+
+<section id="preguntas" class="container section faq">
+	<div class="intro" data-reveal>
+		<p class="eyebrow">Preguntas frecuentes</p>
+		<h2 class="section-title">Lo que más <span class="accent">nos consultan.</span></h2>
+		<p class="help">
+			¿Tenés otra pregunta?
+			<a href={whatsappUrl} class="link-underline" target="_blank" rel="noopener">
+				Escribinos por WhatsApp <Icon name="arrow" size={14} />
+			</a>
+		</p>
+	</div>
+
+	<ul class="list">
+		{
+			faqs.map((faq, i) => (
+				<li data-reveal style={`--reveal-delay: ${i * 80}ms`}>
+					{/* Shared name: opening one question closes the others. */}
+					<details name="faq" open={i === 0}>
+						<summary>
+							<span class="index">0{i + 1}</span>
+							<h3>{faq.question}</h3>
+							<span class="toggle">
+								<Icon name="plus" size={14} />
+							</span>
+						</summary>
+						<p class="lead">{faq.answer}</p>
+					</details>
+				</li>
+			))
+		}
+	</ul>
+</section>
+
+<style>
+	.faq {
+		display: grid;
+		grid-template-columns: repeat(12, 1fr);
+		gap: 2rem;
+	}
+
+	.intro {
+		grid-column: span 4;
+	}
+
+	.section-title {
+		margin-top: 1rem;
+	}
+
+	.help {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem;
+		margin-top: 2rem;
+		font-size: 0.9375rem;
+		color: var(--muted);
+	}
+
+	.help a {
+		color: var(--ink);
+	}
+
+	.list {
+		grid-column: 6 / span 7;
+		border-bottom: 1px solid var(--line);
+	}
+
+	.list li {
+		border-top: 1px solid var(--line);
+	}
+
+	summary {
+		display: grid;
+		grid-template-columns: 2.5rem 1fr auto;
+		align-items: center;
+		gap: 1rem;
+		padding-block: 1.5rem;
+		list-style: none;
+		cursor: pointer;
+	}
+
+	summary::-webkit-details-marker {
+		display: none;
+	}
+
+	.index {
+		font-size: 0.75rem;
+		color: var(--muted);
+	}
+
+	h3 {
+		font-size: clamp(1.25rem, 2vw, 1.6rem);
+		line-height: 1.2;
+	}
+
+	.toggle {
+		display: grid;
+		place-items: center;
+		width: 2rem;
+		height: 2rem;
+		border: 1px solid var(--line);
+		border-radius: 50%;
+		transition:
+			transform 0.3s var(--ease-out),
+			background-color 0.3s,
+			border-color 0.3s,
+			color 0.3s;
+	}
+
+	summary:hover .toggle {
+		border-color: var(--ink);
+	}
+
+	details[open] .toggle {
+		border-color: var(--ink);
+		background: var(--ink);
+		color: var(--cream);
+		transform: rotate(45deg);
+	}
+
+	details .lead {
+		max-width: 36rem;
+		padding: 0 3rem 1.75rem 3.5rem;
+	}
+
+	@media (max-width: 900px) {
+		.intro,
+		.list {
+			grid-column: 1 / -1;
+		}
+	}
+
+	@media (max-width: 520px) {
+		summary {
+			grid-template-columns: 1.75rem 1fr auto;
+			gap: 0.75rem;
+		}
+
+		details .lead {
+			padding: 0 0 1.5rem 2.5rem;
+		}
+	}
+</style>

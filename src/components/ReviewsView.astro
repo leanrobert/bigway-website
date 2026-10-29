@@ -1,0 +1,323 @@
+---
+import Icon from './Icon.astro';
+import { office } from '../data/site';
+import type { Review, ReviewSummary } from '../lib/reviews';
+
+interface Props {
+	summary: ReviewSummary;
+	reviews: Review[];
+}
+
+// Rendered both as the server island's fallback and as its live content, so it has no
+// data-reveal of its own (the page-level observer wouldn't see nodes swapped in later).
+const { summary, reviews } = Astro.props;
+const rating = new Intl.NumberFormat('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(
+	summary.rating,
+);
+---
+
+<reviews-carousel
+	id="opiniones"
+	class="container section"
+	aria-roledescription="carrusel"
+	aria-label="Opiniones de clientes"
+	role="region"
+>
+	<div class="heading">
+		<div>
+			<p class="eyebrow">Opiniones</p>
+			<h2 class="section-title">Lo que dicen <span class="accent">nuestros clientes.</span></h2>
+		</div>
+		<div class="summary">
+			<p class="score">{rating}</p>
+			<div>
+				{/* Stars are filled proportionally to the rating via a clipped gradient. */}
+				<p class="stars" role="img" aria-label={`${rating} de 5 estrellas`} style={`--rating: ${summary.rating}`}>
+					★★★★★
+				</p>
+				<p class="count">{summary.count} opiniones en Google</p>
+			</div>
+		</div>
+	</div>
+
+	{/* Native horizontal scroll with snap: swipe on touch, buttons or arrow keys elsewhere. */}
+	<ul id="reviews-track" class="track" tabindex="0">
+		{
+			reviews.map((review, i) => (
+				<li class="card review" aria-roledescription="opinión" aria-label={`${i + 1} de ${reviews.length}`}>
+					<blockquote>
+						<p>{review.text}</p>
+					</blockquote>
+					<p class="author">
+						<span class="avatar" aria-hidden="true">
+							{review.author[0]}
+						</span>
+						<span>
+							{review.author}
+							<span class="source">Opinión en Google</span>
+						</span>
+					</p>
+				</li>
+			))
+		}
+	</ul>
+
+	<div class="controls">
+		<a href={office.mapsUrl} class="link-underline" target="_blank" rel="noopener">
+			Ver todas las opiniones en Google <Icon name="arrow-up-right" size={12} />
+		</a>
+		<div class="buttons">
+			<button type="button" class="nav prev" aria-controls="reviews-track" aria-label="Opinión anterior" disabled>
+				<Icon name="arrow" size={16} />
+			</button>
+			<button type="button" class="nav next" aria-controls="reviews-track" aria-label="Opinión siguiente">
+				<Icon name="arrow" size={16} />
+			</button>
+		</div>
+	</div>
+</reviews-carousel>
+
+<script>
+	// A custom element wires itself up whenever it enters the DOM, which covers both the
+	// fallback on first paint and the live markup the server island swaps in afterwards.
+	class ReviewsCarousel extends HTMLElement {
+		#abort?: AbortController;
+
+		connectedCallback() {
+			const track = this.querySelector<HTMLElement>('.track');
+			const prev = this.querySelector<HTMLButtonElement>('.prev');
+			const next = this.querySelector<HTMLButtonElement>('.next');
+			if (!track || !prev || !next) return;
+
+			this.#abort = new AbortController();
+			const { signal } = this.#abort;
+			const behavior = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+
+			// One step = one card plus the gap, so snapping lands on the next card.
+			const step = () => {
+				const card = track.querySelector('li');
+				const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+				return card ? card.offsetWidth + gap : track.clientWidth;
+			};
+
+			const update = () => {
+				prev.disabled = track.scrollLeft <= 1;
+				next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 1;
+			};
+
+			prev.addEventListener('click', () => track.scrollBy({ left: -step(), behavior }), { signal });
+			next.addEventListener('click', () => track.scrollBy({ left: step(), behavior }), { signal });
+			track.addEventListener('scroll', update, { passive: true, signal });
+			addEventListener('resize', update, { signal });
+			update();
+		}
+
+		disconnectedCallback() {
+			this.#abort?.abort();
+		}
+	}
+
+	// The island's HTML ships this script again; defining the element twice would throw.
+	if (!customElements.get('reviews-carousel')) customElements.define('reviews-carousel', ReviewsCarousel);
+</script>
+
+<style>
+	reviews-carousel {
+		display: block;
+	}
+
+	.heading {
+		display: grid;
+		grid-template-columns: repeat(12, 1fr);
+		align-items: end;
+		gap: 1.5rem;
+	}
+
+	.heading > div:first-child {
+		grid-column: span 7;
+	}
+
+	.heading h2 {
+		margin-top: 1rem;
+	}
+
+	.summary {
+		grid-column: 9 / span 4;
+		display: flex;
+		align-items: center;
+		gap: 1.25rem;
+	}
+
+	.score {
+		font-family: var(--font-display);
+		font-size: clamp(3.5rem, 5vw, 4.5rem);
+		font-weight: 500;
+		line-height: 0.9;
+		letter-spacing: -0.05em;
+	}
+
+	.stars {
+		width: fit-content;
+		font-size: 1.25rem;
+		letter-spacing: 0.1em;
+		background: linear-gradient(
+			90deg,
+			var(--gold) calc(var(--rating) / 5 * 100%),
+			var(--line) calc(var(--rating) / 5 * 100%)
+		);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+	}
+
+	.count {
+		margin-top: 0.25rem;
+		font-size: 0.8125rem;
+		color: var(--muted);
+	}
+
+	/* Track: three cards per view on desktop, two on tablet, one plus a peek on phones. */
+	.track {
+		--per-view: 3;
+		--gap: 0.75rem;
+		display: flex;
+		gap: var(--gap);
+		margin-top: 3rem;
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scrollbar-width: none;
+		border-radius: var(--radius-card);
+	}
+
+	.track::-webkit-scrollbar {
+		display: none;
+	}
+
+	.review {
+		flex: 0 0 calc((100% - (var(--per-view) - 1) * var(--gap)) / var(--per-view));
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		gap: 1.5rem;
+		padding: 1.5rem;
+		scroll-snap-align: start;
+	}
+
+	blockquote {
+		margin: 0;
+		font-family: var(--font-display);
+		font-size: 1.25rem;
+		letter-spacing: -0.02em;
+		line-height: 1.35;
+	}
+
+	blockquote p::before {
+		content: '“';
+		color: var(--purple);
+	}
+
+	blockquote p::after {
+		content: '”';
+		color: var(--purple);
+	}
+
+	.author {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--line);
+		font-size: 0.875rem;
+		font-weight: 500;
+	}
+
+	.avatar {
+		display: grid;
+		place-items: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: 50%;
+		background: var(--purple-soft);
+		color: var(--purple);
+	}
+
+	.source {
+		display: block;
+		font-size: 0.75rem;
+		font-weight: 400;
+		color: var(--muted);
+	}
+
+	/* Controls */
+	.controls {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-top: 1.5rem;
+	}
+
+	/* Buttons need JS to work, so they only show when it's available. */
+	.buttons {
+		display: flex;
+		gap: 0.5rem;
+		visibility: hidden;
+	}
+
+	:global(.js) .buttons {
+		visibility: visible;
+	}
+
+	.nav {
+		display: grid;
+		place-items: center;
+		width: 3rem;
+		height: 3rem;
+		border: 1px solid var(--line);
+		border-radius: 50%;
+		background: var(--paper);
+		color: var(--ink);
+		cursor: pointer;
+		transition:
+			background-color 0.3s,
+			border-color 0.3s,
+			color 0.3s,
+			opacity 0.3s;
+	}
+
+	.nav:hover:not(:disabled) {
+		border-color: var(--ink);
+		background: var(--ink);
+		color: var(--cream);
+	}
+
+	.nav:disabled {
+		opacity: 0.4;
+		cursor: default;
+	}
+
+	.prev :global(svg) {
+		transform: rotate(180deg);
+	}
+
+	@media (max-width: 1100px) {
+		.track {
+			--per-view: 2;
+		}
+	}
+
+	@media (max-width: 900px) {
+		.heading > div:first-child,
+		.summary {
+			grid-column: 1 / -1;
+		}
+	}
+
+	@media (max-width: 600px) {
+		.track {
+			--per-view: 1.15;
+		}
+	}
+</style>

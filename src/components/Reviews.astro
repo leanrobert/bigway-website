@@ -1,0 +1,14 @@
+---
+// Server island: rendered on demand (use with `server:defer`) so reviews stay fresh while
+// the rest of the page is prerendered. Falls back to the curated list in site.ts.
+import ReviewsView from './ReviewsView.astro';
+import { reviewSummary, reviews } from '../data/site';
+import { getLiveReviews } from '../lib/google-business';
+
+const live = await getLiveReviews();
+
+// Let browsers and proxies reuse the island for an hour; the server cache refreshes every 6h.
+Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
+---
+
+<ReviewsView summary={live?.summary ?? reviewSummary} reviews={live?.reviews ?? reviews} />

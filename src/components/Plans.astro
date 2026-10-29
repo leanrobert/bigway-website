@@ -1,6 +1,6 @@
 ---
 import Icon from './Icon.astro';
-import { plans, whatsappUrl } from '../data/site';
+import { planGroups, technologyLabels } from '../data/site';
 
 const formatPrice = (value: number) =>
 	new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(value);
@@ -10,59 +10,137 @@ const formatPrice = (value: number) =>
 	<div class="heading" data-reveal>
 		<div>
 			<p class="eyebrow">Planes</p>
-			<h2 class="section-title">Fibra óptica simétrica. <span class="accent">Elegí tu velocidad.</span></h2>
+			<h2 class="section-title">Fibra, wireless o con TV. <span class="accent">Elegí tu plan.</span></h2>
 		</div>
 		<p class="lead">
-			Todos los planes tienen la misma velocidad de bajada y de subida, para que subir archivos o
-			hacer videollamadas sea tan rápido como descargar.
+			Fibra óptica con la misma velocidad de bajada y de subida, Internet wireless y combos con Noova,
+			el servicio de TV por Internet asociado a Bigway.
 		</p>
 	</div>
 
-	<ul class="grid">
+	{/* Tabs only exist with JS; without it every group is listed one after another. */}
+	<div class="tabs" role="tablist" aria-label="Tipo de plan" data-reveal>
 		{
-			plans.map((plan, i) => (
-				<li
-					class:list={['plan', plan.featured ? 'dark on-dark' : 'card']}
-					data-reveal
-					style={`--reveal-delay: ${i * 80}ms`}
+			planGroups.map((group, i) => (
+				<button
+					type="button"
+					role="tab"
+					id={`tab-${group.id}`}
+					aria-controls={`planes-${group.id}`}
+					aria-selected={i === 0 ? 'true' : 'false'}
+					tabindex={i === 0 ? 0 : -1}
+					class:list={{ noova: group.noova }}
 				>
-					<div class="top">
-						<h3>Plan {plan.name}</h3>
-						<span class="index">0{i + 1}</span>
-					</div>
-					<p class="speed">
-						{plan.speed}
-						<span>MB</span>
-					</p>
-					<div>
-						<p class="caption">
-							{plan.featured ? <span class="badge">Más elegido</span> : 'Velocidad simétrica'}
-						</p>
-						<div class="action">
-							{plan.price !== null && (
-								<p class="price">
-									{formatPrice(plan.price)}
-									<span>/mes</span>
-								</p>
-							)}
-							<a href="#contactanos" class:list={['btn', plan.featured ? 'btn-light' : 'btn-dark']}>
-								Solicitar<span class="sr-only"> plan {plan.name}</span>
-								<span class="btn-arrow"><Icon name="arrow" size={13} /></span>
-							</a>
-						</div>
-					</div>
-				</li>
+					{group.label}
+				</button>
 			))
 		}
-	</ul>
+	</div>
 
-	<p class="help" data-reveal>
-		¿No sabés qué plan elegir?
-		<a href={whatsappUrl} class="link-underline" target="_blank" rel="noopener">
-			Escribinos por WhatsApp <Icon name="arrow" size={14} />
-		</a>
+	{
+		planGroups.map((group, g) => (
+			<div
+				id={`planes-${group.id}`}
+				role="tabpanel"
+				aria-labelledby={`tab-${group.id}`}
+				class:list={['panel', { 'is-active': g === 0 }]}
+			>
+				<h3 class="panel-title">{group.label}</h3>
+				<ul class="grid">
+					{group.plans.map((plan, i) => (
+						<li
+							class="plan card"
+							data-reveal
+							style={`--reveal-delay: ${i * 80}ms`}
+						>
+							<div class="top">
+								<h4>
+									{technologyLabels[plan.technology]}
+									{group.noova && ' + Noova'}
+								</h4>
+								<span class="index">0{i + 1}</span>
+							</div>
+							<p class="speed">
+								{plan.speed}
+								<span>MB</span>
+							</p>
+							<div>
+								<p class="caption">{group.caption}</p>
+								<div class="action">
+									<div>
+										<p class="price">
+											{formatPrice(plan.price)}
+											<span>/mes</span>
+										</p>
+										<p class="regular">Luego {formatPrice(plan.regularPrice)}/mes</p>
+									</div>
+									<a href="#contactanos" class:list={['btn', group.noova ? 'btn-noova' : 'btn-dark']}>
+										Solicitar
+										<span class="sr-only">
+											{' '}
+											{technologyLabels[plan.technology]} {plan.speed} MB{group.noova && ' con Noova'}
+										</span>
+										<span class="btn-arrow">
+											<Icon name="arrow" size={13} />
+										</span>
+									</a>
+								</div>
+							</div>
+						</li>
+					))}
+					{group.note && (
+						<li
+							class="plan note"
+							data-reveal
+							style={`--reveal-delay: ${group.plans.length * 80}ms`}
+						>
+							<h4>{group.note.title}</h4>
+							<div>
+								<p class="lead">{group.note.text}</p>
+								<a href="#contactanos" class="btn btn-dark">
+									Consultar cobertura
+									<span class="btn-arrow">
+										<Icon name="arrow" size={13} />
+									</span>
+								</a>
+							</div>
+						</li>
+					)}
+				</ul>
+			</div>
+		))
+	}
+
+	<p class="terms" data-reveal>
+		Precios finales mensuales con IVA incluido. Son valores promocionales: al finalizar la promoción
+		se aplica el valor indicado como «luego» en cada plan.
 	</p>
 </section>
+
+<script>
+	// Accessible tabs: click or arrow keys switch the visible plan group.
+	const tabs = [...document.querySelectorAll<HTMLButtonElement>('#planesfo [role="tab"]')];
+
+	const select = (selected: HTMLButtonElement) => {
+		for (const tab of tabs) {
+			const active = tab === selected;
+			tab.setAttribute('aria-selected', String(active));
+			tab.tabIndex = active ? 0 : -1;
+			document.getElementById(tab.getAttribute('aria-controls')!)?.classList.toggle('is-active', active);
+		}
+	};
+
+	tabs.forEach((tab, i) => {
+		tab.addEventListener('click', () => select(tab));
+		tab.addEventListener('keydown', (event) => {
+			const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+			if (!step) return;
+			const next = tabs[(i + step + tabs.length) % tabs.length];
+			next.focus();
+			select(next);
+		});
+	});
+</script>
 
 <style>
 	.heading {
@@ -84,13 +162,97 @@ const formatPrice = (value: number) =>
 		grid-column: 9 / span 4;
 	}
 
+	/* Tabs */
+	.tabs {
+		display: none;
+	}
+
+	:global(.js) .tabs {
+		display: flex;
+		width: fit-content;
+		max-width: 100%;
+		gap: 0.25rem;
+		margin-top: 3rem;
+		padding: 0.25rem;
+		overflow-x: auto;
+		border: 1px solid var(--line);
+		border-radius: 999px;
+		background: var(--paper);
+		scrollbar-width: none;
+	}
+
+	[role='tab'] {
+		flex-shrink: 0;
+		padding: 0.6rem 1.1rem;
+		border: 0;
+		border-radius: 999px;
+		background: transparent;
+		font: 500 0.875rem / 1.2 var(--font-body);
+		color: color-mix(in srgb, var(--ink) 70%, transparent);
+		cursor: pointer;
+		transition:
+			background-color 0.2s,
+			color 0.2s;
+	}
+
+	[role='tab']:hover {
+		color: var(--ink);
+	}
+
+	[role='tab'][aria-selected='true'] {
+		background: var(--ink);
+		color: var(--cream);
+	}
+
+	[role='tab'].noova::before {
+		content: '';
+		display: inline-block;
+		width: 0.45rem;
+		height: 0.45rem;
+		margin-right: 0.5rem;
+		border-radius: 50%;
+		background: var(--noova);
+		vertical-align: 0.1em;
+	}
+
+	[role='tab'].noova[aria-selected='true'] {
+		background: var(--noova);
+		color: var(--ink);
+	}
+
+	[role='tab'].noova[aria-selected='true']::before {
+		background: var(--ink);
+	}
+
+	/* Panels: all visible without JS, one at a time with it. */
+	.panel {
+		margin-top: 3rem;
+	}
+
+	:global(.js) .panel {
+		margin-top: 1.5rem;
+	}
+
+	:global(.js) .panel:not(.is-active) {
+		display: none;
+	}
+
+	.panel-title {
+		margin-bottom: 1rem;
+		font-size: 1.5rem;
+	}
+
+	:global(.js) .panel-title {
+		display: none;
+	}
+
 	.grid {
 		display: grid;
 		grid-template-columns: repeat(4, 1fr);
 		gap: 0.75rem;
-		margin-top: 3rem;
 	}
 
+	/* Cards */
 	.plan {
 		display: flex;
 		flex-direction: column;
@@ -101,20 +263,15 @@ const formatPrice = (value: number) =>
 		border-radius: var(--radius-card);
 	}
 
-	.dark {
-		border: 1px solid var(--ink);
-		background: var(--ink);
-		color: var(--cream);
-	}
-
 	.top {
 		display: flex;
 		align-items: baseline;
 		justify-content: space-between;
+		gap: 1rem;
 	}
 
-	.top h3 {
-		font-family: var(--font-body);
+	.top h4 {
+		margin: 0;
 		font-size: 0.75rem;
 		font-weight: 500;
 		letter-spacing: 0.14em;
@@ -140,10 +297,6 @@ const formatPrice = (value: number) =>
 		color: var(--purple);
 	}
 
-	.dark .speed span {
-		color: var(--yellow);
-	}
-
 	.caption {
 		margin-bottom: 1rem;
 		padding-top: 1rem;
@@ -152,13 +305,6 @@ const formatPrice = (value: number) =>
 		color: var(--muted);
 	}
 
-	.dark .caption,
-	.dark .index {
-		border-color: rgba(243, 241, 236, 0.15);
-		color: var(--mist);
-	}
-
-	/* Price shares the button's row, so adding it doesn't make the card taller. */
 	.action {
 		display: flex;
 		flex-wrap: wrap;
@@ -185,34 +331,51 @@ const formatPrice = (value: number) =>
 		color: var(--muted);
 	}
 
-	.dark .price span {
-		color: var(--mist);
-	}
-
-	/* Sized to sit on the caption's line so the featured card keeps the same height. */
-	.badge {
-		display: inline-block;
-		vertical-align: top;
-		padding: 0.3rem 0.65rem;
-		border-radius: 999px;
-		background: var(--yellow);
-		line-height: 1;
-		color: var(--ink);
-	}
-
-	.help {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: center;
-		gap: 0.75rem;
-		margin-top: 2.5rem;
-		font-size: 0.9375rem;
+	.regular {
+		margin-top: 0.35rem;
+		font-size: 0.75rem;
 		color: var(--muted);
+		white-space: nowrap;
 	}
 
-	.help a {
+	/* Noova combos carry its brand blue on the CTA. White fails contrast on it, so text stays ink. */
+	.btn-noova {
+		background: var(--noova);
 		color: var(--ink);
+	}
+
+	.btn-noova .btn-arrow {
+		background: var(--ink);
+		color: var(--cream);
+	}
+
+	.btn-noova:hover {
+		background: color-mix(in oklch, var(--noova) 85%, var(--ink));
+	}
+
+	/* Help card that completes a short row. */
+	.note {
+		grid-column: span 2;
+		background: var(--purple-soft);
+	}
+
+	.note h4 {
+		margin: 0;
+		font-family: var(--font-display);
+		font-size: clamp(1.75rem, 2.6vw, 2.25rem);
+		font-weight: 500;
+		letter-spacing: -0.035em;
+	}
+
+	.note .lead {
+		max-width: 26rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.terms {
+		margin-top: 1.5rem;
+		font-size: 0.75rem;
+		color: var(--muted);
 	}
 
 	@media (max-width: 1100px) {
@@ -235,6 +398,16 @@ const formatPrice = (value: number) =>
 
 		.plan {
 			min-height: 18rem;
+		}
+
+		.note {
+			grid-column: auto;
+		}
+
+		/* Keep all three tabs visible on narrow phones. */
+		[role='tab'] {
+			padding-inline: 0.65rem;
+			font-size: 0.8125rem;
 		}
 	}
 </style>

@@ -2,8 +2,12 @@
 import { Image } from 'astro:assets';
 import Icon from './Icon.astro';
 import heroBg from '../assets/hero-bg.png';
+import { office, planGroups } from '../data/site';
 
 const word = 'Bigway';
+const fiberTopSpeed = Math.max(
+	...planGroups.flatMap((group) => group.plans).filter((plan) => plan.technology === 'fibra').map((plan) => plan.speed),
+);
 const highlights = ['Fibra óptica', 'Velocidad simétrica', 'Call center', 'Servicio técnico propio'];
 ---
 
@@ -19,12 +23,12 @@ const highlights = ['Fibra óptica', 'Velocidad simétrica', 'Call center', 'Ser
 
 	<div class="container hero-copy">
 		<div data-reveal style="--reveal-delay: 520ms">
-			<p class="pill"><Icon name="pin" size={13} /> San José, Guaymallén, Mendoza</p>
+			<p class="pill"><Icon name="pin" size={13} /> {office.building}, {office.city}</p>
 			<p class="tagline">Mejorá tu conexión con el mundo.</p>
 		</div>
 		<div class="hero-aside" data-reveal style="--reveal-delay: 600ms">
 			<p class="lead">
-				Internet veloz para hogares y empresas, para aprovechar al máximo tus momentos de trabajo,
+				Internet veloz para tu hogar, para aprovechar al máximo tus momentos de trabajo,
 				ocio y educación.
 			</p>
 			<a href="#planesfo" class="link-underline">
@@ -51,7 +55,7 @@ const highlights = ['Fibra óptica', 'Velocidad simétrica', 'Call center', 'Ser
 
 		<a href="#planesfo" class="overlay float-card">
 			<span>
-				<span class="float-title">Planes desde 25 MB</span>
+				<span class="float-title">Fibra óptica hasta {fiberTopSpeed} MB</span>
 				<span class="float-sub">Misma velocidad de bajada y subida.</span>
 			</span>
 			<span class="float-arrow"><Icon name="arrow-up-right" size={13} /></span>
