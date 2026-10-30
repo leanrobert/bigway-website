@@ -67,7 +67,14 @@ La constante del radio (`COVERAGE_RADIUS_M = 500`) vive en `coverage-geo.ts`, y 
 
 ### 4. Rate limit en memoria por IP
 
-Ventana fija en un `Map<ip, { count, resetAt }>` dentro del módulo del endpoint: **30 consultas cada 10 minutos por IP**. Las entradas vencidas se podan en cada request, cuando el mapa pasa de un umbral, para que la memoria no crezca sin límite. La IP sale de `context.clientAddress`.
+Ventana fija en un `Map<ip, { count, resetAt }>` dentro del módulo del endpoint: **30 consultas cada 10 minutos por IP**. Las entradas vencidas se podan en cada request, cuando el mapa pasa de un umbral, para que la memoria no crezca sin límite.
+
+**IP del visitante detrás de nginx** (confirmado en staging: sin esto, todos los visitantes compartían un mismo cupo). Sin `security.allowedDomains`, Astro 7 entrega en `clientAddress` la IP del socket, o sea la de nginx. Por eso el endpoint resuelve la IP con `clientIp()` ([src/lib/client-ip.ts](../../../src/lib/client-ip.ts)):
+- Si la conexión viene de un proxy de confianza (loopback, más `COVERAGE_TRUSTED_PROXIES`), usa la **última** entrada de `X-Forwarded-For`, la que agrega nginx. Las anteriores las controla el cliente.
+- Si no, usa la IP del socket, así que un header falsificado desde afuera no tiene efecto.
+- Si el proxy no manda el header, loguea un aviso una sola vez, sin IPs.
+
+*Alternativa descartada:* `security.allowedDomains`. Hace que Astro tome la **primera** entrada de `X-Forwarded-For`, que es falsificable con la configuración habitual de nginx (`$proxy_add_x_forwarded_for`). Además depende de que el header `Host` coincida y tiene efectos sobre `Astro.url`.
 
 *Alternativa descartada:* rate limit en el reverse proxy (nginx `limit_req`). Es más robusto, pero no está en este repo y depende de cómo esté armada la infra. Se puede sumar después sin cambiar nada de esto.
 
@@ -84,7 +91,8 @@ Se agrega un chequeo post-build (tarea manual en este cambio, eventualmente un p
 ## Risks / Trade-offs
 
 - **[Reconstrucción del mapa con muchas IPs o mucha paciencia]** → El Gran Mendoza (~40 × 40 km) se cubre con unas 1600 consultas de 1 km de diámetro. Con 30 consultas cada 10 minutos, una sola IP tarda horas, pero un atacante con varias IPs lo puede hacer. Es un disuasivo, no una garantía. Si hace falta más, se puede sumar rate limit en el proxy, achicar el radio o pedir un captcha.
-- **[Rate limit inútil detrás de un proxy]** → Si hay un reverse proxy delante del proceso Node, `clientAddress` puede ser la IP del proxy, y entonces todos los visitantes comparten el mismo límite. Hay que verificarlo en staging antes de producción (ver Open Questions).
+- **[Rate limit inútil detrás de un proxy]** → Se confirmó en staging. Se resolvió con `clientIp()` (Decisión 4). Depende de que nginx mande `X-Forwarded-For` y de que la IP desde la que nginx se conecta a Node esté en la lista de confianza.
+- **[Coordenadas en el access log de nginx]** → nginx registra la URL completa, con `lat`/`lng`, lo que contradice el requisito de privacidad. Mitigación: `access_log off;` en `location /api/coverage` antes de producción, y limpiar los logs de staging.
 - **[Artefactos de Sutherland–Hodgman]** → Si una zona cóncava sale y vuelve a entrar al círculo, el recorte genera aristas de área cero sobre el borde del círculo. El relleno no se ve afectado, pero el contorno dibuja un segmento sobre el borde. Mitigación: la capa `radius` dibuja ese mismo borde y los tapa. Si igual se notan, se migra a `polygon-clipping` (Decisión 2).
 - **[La sección depende del servidor]** → Hoy el mapa funciona aunque el proceso Node esté caído, porque todo es estático. Con este cambio, la consulta de cobertura falla si el servidor no responde. Mitigación: el mensaje de error de la spec y monitoreo del proceso. La isla de reseñas ya depende del mismo servidor.
 - **[Memoria del rate limit]** → El `Map` crece con IPs únicas. Se mitiga podando las entradas vencidas. El consumo es acotado por la ventana de 10 minutos.
@@ -102,5 +110,5 @@ Se agrega un chequeo post-build (tarea manual en este cambio, eventualmente un p
 
 ## Open Questions
 
-- ¿Hay un reverse proxy (nginx, Proxmox, Cloudflare) delante del proceso Node en producción? Si lo hay, hay que confirmar qué IP llega como `clientAddress` y, si hace falta, tomar `X-Forwarded-For` **solo** cuando la conexión viene del proxy. No cambia el enfoque, solo de dónde se lee la IP.
+- Desde qué IP se conecta nginx a Node en staging y en producción. Si no es loopback, hay que cargarla en `COVERAGE_TRUSTED_PROXIES`.
 - Los valores exactos del rate limit (30 / 10 min) se pueden ajustar después de ver el uso real.

@@ -40,3 +40,4 @@
   - qué IP llega como `clientAddress` detrás del proxy (si es la del proxy, leer `X-Forwarded-For` solo desde el proxy de confianza y repetir 2.3);
   - que el rate limit discrimina entre dos clientes distintos;
   - tiempos de respuesta del endpoint aceptables.
+  - Avance: en staging el límite resultó compartido (la IP de nginx). Se agregaron `clientIp()` + `COVERAGE_TRUSTED_PROXIES`, con tests unitarios y una prueba local con proxy simulado. Falta redesplegar en staging, configurar nginx (`X-Forwarded-For`, `access_log off`) y repetir la prueba con dos clientes.

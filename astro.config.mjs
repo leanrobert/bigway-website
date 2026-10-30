@@ -14,6 +14,11 @@ export default defineConfig({
 			GBP_REFRESH_TOKEN: envField.string({ context: 'server', access: 'secret', optional: true }),
 			/** Format: accounts/{accountId}/locations/{locationId} */
 			GBP_LOCATION: envField.string({ context: 'server', access: 'secret', optional: true }),
+			/**
+			 * Comma-separated addresses of reverse proxies whose X-Forwarded-For is trusted, besides
+			 * loopback. Without the right one, every visitor shares the coverage lookup rate limit.
+			 */
+			COVERAGE_TRUSTED_PROXIES: envField.string({ context: 'server', access: 'public', optional: true }),
 		},
 	},
 	fonts: [

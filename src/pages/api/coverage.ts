@@ -4,7 +4,9 @@
 // Privacy: the site promises not to keep searched addresses, so coordinates are never logged
 // and responses are never cached.
 import type { APIRoute } from 'astro';
+import { COVERAGE_TRUSTED_PROXIES } from 'astro:env/server';
 import coverage from '../../data/coverage.json';
+import { clientIp, LOOPBACK } from '../../lib/client-ip';
 import { bboxOf, COVERAGE_RADIUS_M, coverageAround, technologiesAt } from '../../lib/coverage-geo';
 
 export const prerender = false;
@@ -18,6 +20,16 @@ const SERVICE_AREA = { minLng: -70.6, maxLng: -66.4, minLat: -37.6, maxLat: -32.
  */
 const RATE_LIMIT = { max: 30, windowMs: 10 * 60 * 1000, pruneAbove: 1000 };
 const hits = new Map<string, { count: number; resetAt: number }>();
+
+// nginx connects from loopback when it runs on the same host; other proxies come from the env.
+const TRUSTED_PROXIES = [
+	...LOOPBACK,
+	...(COVERAGE_TRUSTED_PROXIES ?? '')
+		.split(',')
+		.map((address) => address.trim())
+		.filter(Boolean),
+];
+let warnedMissingForwardedFor = false;
 
 // Bounding boxes are computed once so each lookup only clips the zones near the point.
 const features = coverage.features.map((feature) => ({ ...feature, bbox: bboxOf(feature.geometry.coordinates) }));
@@ -44,8 +56,14 @@ const json = (status: number, body: unknown) =>
 /** A finite number, or NaN for a missing or malformed parameter. */
 const parseCoordinate = (value: string | null) => (value === null || value.trim() === '' ? NaN : Number(value));
 
-export const GET: APIRoute = ({ url, clientAddress }) => {
-	if (isRateLimited(clientAddress)) return json(429, { error: 'rate_limited' });
+export const GET: APIRoute = ({ url, request, clientAddress }) => {
+	const forwardedFor = request.headers.get('x-forwarded-for');
+	if (!forwardedFor && TRUSTED_PROXIES.includes(clientAddress) && !warnedMissingForwardedFor) {
+		// No addresses in the message: it only flags a proxy misconfiguration, once.
+		console.warn('[coverage-api] Proxy sends no X-Forwarded-For: all visitors share one rate limit.');
+		warnedMissingForwardedFor = true;
+	}
+	if (isRateLimited(clientIp(clientAddress, forwardedFor, TRUSTED_PROXIES))) return json(429, { error: 'rate_limited' });
 
 	const lat = parseCoordinate(url.searchParams.get('lat'));
 	const lng = parseCoordinate(url.searchParams.get('lng'));
