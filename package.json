@@ -11,6 +11,7 @@
     "preview": "astro preview",
     "start": "node --env-file-if-exists=.env ./dist/server/entry.mjs",
     "coverage": "node scripts/coverage.mjs",
+    "test": "node --test \"src/lib/*.test.ts\"",
     "gbp:locations": "node --env-file-if-exists=.env scripts/gbp-locations.mjs",
     "astro": "astro"
   },

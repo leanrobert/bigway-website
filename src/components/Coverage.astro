@@ -18,12 +18,12 @@ const technologies = (['fibra', 'wireless'] as Technology[]).filter((technology)
 				<div>
 					<p class="eyebrow">Cobertura</p>
 					<h2 class="section-title">
-						¿Llegamos a tu casa? <span class="accent">Mirá el mapa.</span>
+						¿Llegamos a tu casa? <span class="accent">Buscá tu dirección.</span>
 					</h2>
 				</div>
 				<p class="lead">
-					Buscá tu dirección y te decimos qué servicio llega. Seguimos sumando
-					barrios: si no ves el tuyo, consultanos.
+					Escribí tu calle y número y te mostramos qué servicio llega a tu casa. Seguimos
+					sumando barrios: si todavía no llegamos, consultanos.
 				</p>
 			</div>
 
@@ -98,7 +98,7 @@ const technologies = (['fibra', 'wireless'] as Technology[]).filter((technology)
 			</div>
 
 			<p class="disclaimer" data-reveal>
-				La cobertura es orientativa: la confirmamos antes de instalar. Bigway no guarda la dirección
+				La disponibilidad esta sujeta a revisión por un asesor. Bigway no guarda la dirección
 				que busques. Búsqueda de direcciones con{' '}
 				<a href="https://datosgobar.github.io/georef-ar-api/" target="_blank" rel="noopener">
 					Georef AR
@@ -110,8 +110,16 @@ const technologies = (['fibra', 'wireless'] as Technology[]).filter((technology)
 }
 
 <script>
-	import type { Map as MapLibreMap, Marker } from 'maplibre-gl';
-	import { parseAddress, positions, technologiesAt, toMatches, type AddressMatch, type Position } from '../lib/coverage-geo';
+	import type { GeoJSONSource, Map as MapLibreMap, Marker } from 'maplibre-gl';
+	import {
+		bboxOf,
+		circle,
+		parseAddress,
+		toMatches,
+		type AddressMatch,
+		type CoverageZones,
+		type Position,
+	} from '../lib/coverage-geo';
 
 	const section = document.querySelector<HTMLElement>('#cobertura');
 	const container = section?.querySelector<HTMLElement>('[data-coverage-map]');
@@ -119,13 +127,26 @@ const technologies = (['fibra', 'wireless'] as Technology[]).filter((technology)
 
 	// Matching --purple and --gold in Layout.astro. Wireless is listed first so fiber draws on top.
 	const COLORS = { wireless: '#c9a94a', fibra: '#6f2d91' };
+	// Matching --ink: the dashed ring marking how far around the address coverage is shown.
+	const RADIUS_COLOR = '#141619';
 	// OpenFreeMap: free for commercial use, no API key. Attribution is added by MapLibre.
 	const STYLE = 'https://tiles.openfreemap.org/styles/positron';
 	// Argentina's official address API (datos.gob.ar): free, no key, CORS enabled.
 	const GEOREF = 'https://apis.datos.gob.ar/georef/api/direcciones';
+	// The full coverage map stays on the server; this returns only the zones around one point.
+	const COVERAGE_API = '/api/coverage';
+	// Greater Mendoza, from Las Heras to Luján: the map opens here, with no zones drawn.
+	const GREATER_MENDOZA: [[number, number], [number, number]] = [
+		[-68.98, -33.1],
+		[-68.68, -32.8],
+	];
 
-	type Coverage = (typeof import('../data/coverage.json'))['default'];
-	let ready: Promise<{ map: MapLibreMap; coverage: Coverage; maplibre: typeof import('maplibre-gl') }> | undefined;
+	const EMPTY: CoverageZones = { type: 'FeatureCollection', features: [] };
+
+	type CoverageLookup = { technologies: string[]; radius: number; zones: CoverageZones };
+	class RateLimitedError extends Error {}
+
+	let ready: Promise<{ map: MapLibreMap; maplibre: typeof import('maplibre-gl') }> | undefined;
 
 	const checker = section?.querySelector<HTMLElement>('[data-coverage-checker]');
 
@@ -140,23 +161,17 @@ const technologies = (['fibra', 'wireless'] as Technology[]).filter((technology)
 			: { top: 40, right: 40, bottom: 40, left: 40 };
 	};
 
-	/** Loads MapLibre and the zones once, whether triggered by scrolling or by a search. */
+	/** Loads MapLibre once, whether triggered by scrolling or by a search. Starts with no zones. */
 	function loadMap(el: HTMLElement) {
 		ready ??= (async () => {
-			// MapLibre, its worker, its CSS and the GeoJSON are all split out and fetched together.
-			const [maplibre, { default: workerUrl }, { default: coverage }] = await Promise.all([
+			// MapLibre, its worker and its CSS are all split out and fetched together.
+			const [maplibre, { default: workerUrl }] = await Promise.all([
 				import('maplibre-gl'),
 				import('maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'),
-				import('../data/coverage.json'),
 				import('maplibre-gl/dist/maplibre-gl.css'),
 			]);
-			const { Map, NavigationControl, LngLatBounds, setWorkerUrl } = maplibre;
+			const { Map, NavigationControl, setWorkerUrl } = maplibre;
 			setWorkerUrl(workerUrl);
-
-			const bounds = new LngLatBounds();
-			for (const feature of coverage.features) {
-				for (const position of positions(feature.geometry.coordinates)) bounds.extend(position);
-			}
 
 			status?.remove();
 			el.classList.add('is-ready');
@@ -164,7 +179,7 @@ const technologies = (['fibra', 'wireless'] as Technology[]).filter((technology)
 			const map = new Map({
 				container: el,
 				style: STYLE,
-				bounds,
+				bounds: GREATER_MENDOZA,
 				fitBoundsOptions: { padding: mapPadding() },
 				// Page scroll keeps working; zooming needs ctrl/⌘ or two fingers.
 				cooperativeGestures: true,
@@ -182,8 +197,9 @@ const technologies = (['fibra', 'wireless'] as Technology[]).filter((technology)
 			map.addControl(new NavigationControl({ showCompass: false }), 'top-right');
 
 			await new Promise<void>((resolve) => map.once('load', () => resolve()));
-			// The JSON import types `type` as a plain string, so the source spec needs a cast.
-			map.addSource('coverage', { type: 'geojson', data: coverage } as Parameters<typeof map.addSource>[1]);
+			// Both sources start empty and are filled by each search's lookup.
+			map.addSource('coverage', { type: 'geojson', data: EMPTY });
+			map.addSource('radius', { type: 'geojson', data: EMPTY });
 			for (const [technology, color] of Object.entries(COLORS)) {
 				const filter = ['==', ['get', 'technology'], technology] as ['==', ['get', string], string];
 				map.addLayer({
@@ -201,9 +217,34 @@ const technologies = (['fibra', 'wireless'] as Technology[]).filter((technology)
 					paint: { 'line-color': color, 'line-width': 1.5, 'line-opacity': 0.9 },
 				});
 			}
-			return { map, coverage, maplibre };
+			// Drawn last: the ring also covers the seams clipping leaves along the circle's edge.
+			map.addLayer({
+				id: 'radius-outline',
+				type: 'line',
+				source: 'radius',
+				paint: { 'line-color': RADIUS_COLOR, 'line-width': 1.5, 'line-opacity': 0.6, 'line-dasharray': [2, 2] },
+			});
+			return { map, maplibre };
 		})();
 		return ready;
+	}
+
+	/** Swaps what the map shows around the address; no zones and no ring clear it. */
+	function setZones(map: MapLibreMap, zones: CoverageZones, ring: Position[] | null) {
+		map.getSource<GeoJSONSource>('coverage')?.setData(zones);
+		map.getSource<GeoJSONSource>('radius')?.setData(
+			ring ? { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } } : EMPTY,
+		);
+	}
+
+	/** Asks the server which technologies reach the point and for the zones around it. */
+	async function lookupCoverage([lng, lat]: Position): Promise<CoverageLookup> {
+		const url = new URL(COVERAGE_API, location.origin);
+		url.search = new URLSearchParams({ lat: String(lat), lng: String(lng) }).toString();
+		const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+		if (response.status === 429) throw new RateLimitedError();
+		if (!response.ok) throw new Error(`Coverage API ${response.status}`);
+		return response.json();
 	}
 
 	if (section && container) {
@@ -219,6 +260,8 @@ const technologies = (['fibra', 'wireless'] as Technology[]).filter((technology)
 		const resultCta = result.querySelector<HTMLAnchorElement>('[data-result-cta]')!;
 		const resultCtaLabel = result.querySelector<HTMLElement>('[data-result-cta-label]')!;
 		let marker: Marker | undefined;
+		// Lets a slow lookup know a newer search replaced it, so it doesn't draw over it.
+		let searches = 0;
 
 		/** Only one of note / matches / result is visible at a time. */
 		const show = (panel: HTMLElement) => {
@@ -235,17 +278,46 @@ const technologies = (['fibra', 'wireless'] as Technology[]).filter((technology)
 			submit.classList.toggle('is-loading', loading);
 		};
 
-		/** Drops a pin on the point and says which service reaches it. */
+		/** Drops a pin on the point, shows the coverage around it and says which service reaches it. */
 		async function check(position: Position, place: string) {
-			const { map, coverage, maplibre } = await loadMap(container!);
+			const search = ++searches;
+			// The previous result goes away right away, even if this lookup ends up failing.
+			marker?.remove();
+			ready?.then(({ map }) => setZones(map, EMPTY, null)).catch(() => {});
+
+			let lookup: CoverageLookup;
+			let map: MapLibreMap;
+			let maplibre: typeof import('maplibre-gl');
+			try {
+				[{ map, maplibre }, lookup] = await Promise.all([loadMap(container!), lookupCoverage(position)]);
+			} catch (error) {
+				if (search !== searches) return;
+				console.error('[coverage] Could not check the address:', error instanceof Error ? error.name : error);
+				showNote(
+					error instanceof RateLimitedError
+						? 'Hiciste muchas búsquedas seguidas. Probá de nuevo en unos minutos.'
+						: 'No pudimos verificar la dirección en este momento. Probá de nuevo en unos minutos.',
+				);
+				return;
+			}
+			if (search !== searches) return;
+
+			const ring = circle(position, lookup.radius);
+			setZones(map, lookup.zones, ring);
 
 			const pin = document.createElement('div');
 			pin.className = 'coverage-pin';
-			marker?.remove();
 			marker = new maplibre.Marker({ element: pin }).setLngLat(position).addTo(map);
-			map.flyTo({ center: position, zoom: 15, padding: mapPadding(), essential: false });
+			const [minLng, minLat, maxLng, maxLat] = bboxOf(ring);
+			map.fitBounds(
+				[
+					[minLng, minLat],
+					[maxLng, maxLat],
+				],
+				{ padding: mapPadding(), essential: false },
+			);
 
-			const found = technologiesAt(position, coverage.features);
+			const found = lookup.technologies;
 			const [tone, title, cta] = found.includes('fibra')
 				? ['fibra', '¡Hay fibra óptica en tu zona!', { href: '#planesfo', label: 'Ver planes' }]
 				: found.includes('wireless')
@@ -267,12 +339,7 @@ const technologies = (['fibra', 'wireless'] as Technology[]).filter((technology)
 					const button = document.createElement('button');
 					button.type = 'button';
 					button.textContent = option.label;
-					button.addEventListener('click', () =>
-						check(option.position, option.label).catch((error) => {
-							console.error('[coverage] Could not check the address:', error);
-							showNote('No pudimos cargar el mapa. Probá de nuevo más tarde.');
-						}),
-					);
+					button.addEventListener('click', () => check(option.position, option.label));
 					item.append(button);
 					return item;
 				}),

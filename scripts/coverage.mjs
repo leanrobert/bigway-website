@@ -7,8 +7,9 @@
 // Only polygons are kept: points and lines (NAPs, nodes, fiber routes) are dropped so network
 // infrastructure never ends up on the public site. Descriptions and extended data are dropped too.
 //
-// Each zone is tagged "fibra" or "wireless" from its placemark name, or failing that its file
-// name (e.g. "fibra-guaymallen.kmz", "Zona norte wireless"). Unclassified zones abort the run.
+// Each zone is tagged "fibra" or "wireless" from its placemark name, then the "Carpeta"/"Origen"
+// extended data that merged maps keep from their source layer, then its file name
+// (e.g. "fibra-guaymallen.kmz", "Zona norte wireless"). Unclassified zones abort the run.
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, extname, join } from 'node:path';
 import { DOMParser } from '@xmldom/xmldom';
@@ -53,16 +54,26 @@ const features = [];
 const skipped = {};
 const unclassified = [];
 
+/** A placemark with several polygons (KML MultiGeometry) comes out as a GeometryCollection. */
+function toPolygonGeometry(geometry) {
+	if (geometry?.type === 'Polygon' || geometry?.type === 'MultiPolygon') return geometry;
+	const parts = geometry?.type === 'GeometryCollection' ? geometry.geometries : [];
+	if (parts.length === 0 || parts.some((part) => part.type !== 'Polygon')) return null;
+	return { type: 'MultiPolygon', coordinates: parts.map((part) => part.coordinates) };
+}
+
 for (const file of files) {
 	const geojson = kml(new DOMParser().parseFromString(readKml(file), 'text/xml'));
 	for (const feature of geojson.features) {
-		const type = feature.geometry?.type;
-		if (type !== 'Polygon' && type !== 'MultiPolygon') {
-			skipped[type ?? 'sin geometría'] = (skipped[type ?? 'sin geometría'] ?? 0) + 1;
+		const geometry = toPolygonGeometry(feature.geometry);
+		if (!geometry) {
+			const type = feature.geometry?.type ?? 'sin geometría';
+			skipped[type] = (skipped[type] ?? 0) + 1;
 			continue;
 		}
-		const name = feature.properties?.name ?? basename(file, extname(file));
-		const technology = detectTechnology(feature.properties?.name, basename(file));
+		const props = feature.properties ?? {};
+		const name = props.name ?? basename(file, extname(file));
+		const technology = detectTechnology(props.name, props.Carpeta, props.Origen, basename(file));
 		if (!technology) {
 			unclassified.push(`${basename(file)} → ${name}`);
 			continue;
@@ -70,7 +81,7 @@ for (const file of files) {
 		features.push({
 			type: 'Feature',
 			properties: { name, technology },
-			geometry: { type, coordinates: roundCoords(feature.geometry.coordinates) },
+			geometry: { type: geometry.type, coordinates: roundCoords(geometry.coordinates) },
 		});
 	}
 }
