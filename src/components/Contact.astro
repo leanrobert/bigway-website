@@ -9,7 +9,7 @@ const chatUrl = `https://wa.me/${whatsappNumber}`;
 const fields = [
 	{ name: 'name', label: 'Nombre completo', type: 'text', autocomplete: 'name', wide: true },
 	{ name: 'phone', label: 'Número de teléfono', type: 'tel', autocomplete: 'tel', wide: false },
-	{ name: 'department', label: 'Departamento', type: 'text', autocomplete: 'address-level2', wide: false },
+	{ name: 'address', label: 'Dirección', type: 'text', autocomplete: 'street-address', wide: false },
 ] as const;
 ---
 
@@ -74,7 +74,7 @@ const fields = [
 			'¡Hola! Quiero más información sobre el servicio de Bigway',
 			`Mi nombre es: ${value('name')}`,
 			`Mi teléfono es: ${value('phone')}`,
-			`Vivo en: ${value('department')}`,
+			`Mi dirección es: ${value('address')}`,
 		].join('\n');
 
 		const url = new URL(form.action);
@@ -96,8 +96,8 @@ const fields = [
 		padding: clamp(1.5rem, 5vw, 5rem);
 		border-radius: var(--radius-panel);
 		background:
-			radial-gradient(ellipse at 0% 100%, rgba(111, 45, 145, 0.55), transparent 55%),
-			var(--ink);
+			radial-gradient(ellipse at 0% 100%, rgba(111, 58, 150, 0.55), transparent 55%),
+			var(--deep);
 		color: var(--cream);
 	}
 

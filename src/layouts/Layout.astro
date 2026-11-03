@@ -60,9 +60,13 @@ const { title, description } = Astro.props;
 		--muted: #6b6e74;
 		--line: #dedad1;
 		--mist: #a9acb3;
-		--purple: #6f2d91;
-		--purple-soft: #ece3f1;
-		--yellow: #fff56c;
+		/* Brand: primary and secondary. */
+		--purple: #6f3a96;
+		--deep: #30205d;
+		--purple-soft: #ece5f1;
+		/* Accent on dark surfaces: --deep has no contrast there (1.3:1 on --ink). */
+		--lavender: #c7a9e0;
+		/* Rating stars only. */
 		--gold: #c9a94a;
 		/* Noova (partner IPTV service) brand blue. */
 		--noova: oklch(0.6284 0.1456 243.4);
@@ -134,7 +138,7 @@ const { title, description } = Astro.props;
 	}
 
 	.on-dark .accent {
-		color: var(--yellow);
+		color: var(--lavender);
 	}
 
 	.container {
@@ -172,7 +176,7 @@ const { title, description } = Astro.props;
 	}
 
 	.on-dark .eyebrow::before {
-		background: var(--yellow);
+		background: var(--lavender);
 	}
 
 	.section-title {
@@ -265,7 +269,7 @@ const { title, description } = Astro.props;
 	}
 
 	.btn-light:hover {
-		background: var(--yellow);
+		background: var(--lavender);
 	}
 
 	.btn-ghost {
@@ -345,7 +349,7 @@ const { title, description } = Astro.props;
 	}
 
 	.on-dark :focus-visible {
-		outline-color: var(--yellow);
+		outline-color: var(--lavender);
 	}
 
 	@media (prefers-reduced-motion: reduce) {

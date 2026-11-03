@@ -40,19 +40,21 @@ import { office } from '../data/site';
 			</div>
 		</article>
 
-		<article class="card feature photo" data-reveal style="--reveal-delay: 160ms">
-			<Image src={aboutBg} alt="" widths={[400, 640]} sizes="(min-width: 1024px) 340px, 50vw" />
-			<div class="photo-body">
-				<span class="index">03</span>
+		<article class="feature brand" data-reveal style="--reveal-delay: 160ms">
+				<div class="top">
+					<span class="index">03</span>
+					<span class="badge"><Icon name="pin" size={20} /></span>
+				</div>
+				<div>
 				<h3>Oficinas en Mendoza</h3>
-				<p>Estamos en {office.building}, {office.street}. Vení a conocernos.</p>
+				<p>Estamos en {office.building}, {office.street}.</p>
 				<a href={office.mapsUrl} class="link-underline" target="_blank" rel="noopener">
 					Cómo llegar <Icon name="arrow-up-right" size={12} />
 				</a>
-			</div>
+				</div>
 		</article>
 
-		<article class="feature brand" data-reveal style="--reveal-delay: 240ms">
+		<article class="feature card" data-reveal style="--reveal-delay: 240ms">
 			<div class="top">
 				<span class="index">04</span>
 				<span class="badge"><Icon name="phone" size={20} /></span>
@@ -96,18 +98,17 @@ import { office } from '../data/site';
 		display: flex;
 		flex-direction: column;
 		justify-content: space-between;
-		gap: 2rem;
-		min-height: 20rem;
-		padding: 1.5rem;
+		gap: 1.25rem;
+		padding: 1.25rem 1.5rem;
 		border-radius: var(--radius-card);
 	}
 
 	.feature h3 {
-		font-size: 1.75rem;
+		font-size: 1.5rem;
 	}
 
 	.feature p {
-		margin-top: 0.75rem;
+		margin-top: 0.5rem;
 		font-size: 0.875rem;
 		line-height: 1.65;
 		color: color-mix(in srgb, var(--ink) 65%, transparent);
@@ -127,15 +128,15 @@ import { office } from '../data/site';
 	.badge {
 		display: grid;
 		place-items: center;
-		width: 3.5rem;
-		height: 3.5rem;
+		width: 2.75rem;
+		height: 2.75rem;
 		border: 1px solid var(--line);
 		border-radius: 50%;
 		color: var(--purple);
 	}
 
 	.dark {
-		background: var(--ink);
+		background: var(--deep);
 		color: var(--cream);
 	}
 
@@ -146,32 +147,50 @@ import { office } from '../data/site';
 
 	.dashed {
 		border: 1px dashed color-mix(in srgb, var(--mist) 50%, transparent);
-		color: var(--yellow);
+		color: var(--lavender);
 	}
 
+	/* The photo fills the card behind the text, so this card is no taller than the others. */
 	.photo {
-		padding: 0.5rem;
-		gap: 0;
+		position: relative;
+		justify-content: flex-end;
 		overflow: hidden;
+		background: var(--deep);
+		color: var(--cream);
 	}
 
 	.photo img {
+		position: absolute;
+		inset: 0;
 		width: 100%;
-		aspect-ratio: 16 / 9;
-		border-radius: calc(var(--radius-card) - 0.4rem);
+		height: 100%;
 		object-fit: cover;
 	}
 
+	.photo::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		/* --deep */
+		background: linear-gradient(to top, rgba(48, 32, 93, 0.9), rgba(48, 32, 93, 0.4));
+	}
+
 	.photo-body {
-		padding: 1rem;
+		position: relative;
+		z-index: 1;
+	}
+
+	.photo p,
+	.photo .index {
+		color: var(--mist);
 	}
 
 	.photo h3 {
-		margin-top: 0.5rem;
+		margin-top: 0.25rem;
 	}
 
 	.photo .link-underline {
-		margin-top: 0.75rem;
+		margin-top: 0.5rem;
 	}
 
 	.brand {
@@ -198,10 +217,6 @@ import { office } from '../data/site';
 	@media (max-width: 600px) {
 		.grid {
 			grid-template-columns: 1fr;
-		}
-
-		.feature {
-			min-height: 16rem;
 		}
 	}
 </style>

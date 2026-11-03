@@ -115,7 +115,8 @@ const highlights = ['Fibra óptica', 'Velocidad simétrica', 'Call center', 'Ser
 		const update = () => {
 			const rect = photo.parentElement!.getBoundingClientRect();
 			const offset = Math.max(-1, Math.min(1, rect.top / window.innerHeight));
-			photo.style.transform = `translate3d(0, ${offset * -60}px, 0) scale(1.12)`;
+			// In % of the photo height: scale(1.12) leaves 6% spare on each edge.
+			photo.style.transform = `translate3d(0, ${offset * -5}%, 0) scale(1.12)`;
 			ticking = false;
 		};
 		addEventListener(
@@ -180,7 +181,7 @@ const highlights = ['Fibra óptica', 'Velocidad simétrica', 'Call center', 'Ser
 		   glyph overhang left by the negative tracking, then cancel the extra width with margins. */
 		padding: 0 0.08em 0.2em;
 		margin-inline: -0.08em;
-		background: linear-gradient(90deg, var(--gold), #a8708f 45%, var(--purple));
+		background: linear-gradient(90deg, var(--deep), var(--purple));
 		background-size: calc(var(--n) * 100%) 100%;
 		background-position-x: calc(var(--i) / max(var(--n) - 1, 1) * 100%);
 		-webkit-background-clip: text;
@@ -239,7 +240,7 @@ const highlights = ['Fibra óptica', 'Velocidad simétrica', 'Call center', 'Ser
 
 	.hero-media img {
 		width: 100%;
-		height: clamp(520px, 88svh, 900px);
+		height: clamp(300px, 44svh, 450px);
 		object-fit: cover;
 		transform: scale(1.12);
 		will-change: transform;
@@ -248,7 +249,7 @@ const highlights = ['Fibra óptica', 'Velocidad simétrica', 'Call center', 'Ser
 	.shade {
 		position: absolute;
 		inset: 0;
-		background: linear-gradient(to top, rgba(20, 22, 25, 0.75), transparent 55%, rgba(20, 22, 25, 0.15));
+		background: linear-gradient(to top, rgba(48, 32, 93, 0.8), transparent 55%, rgba(48, 32, 93, 0.15));
 	}
 
 	.overlay {

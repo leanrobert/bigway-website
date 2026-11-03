@@ -51,7 +51,7 @@ const formatPrice = (value: number) =>
 						<li
 							class="plan card"
 							data-reveal
-							style={`--reveal-delay: ${i * 80}ms`}
+							style={`--reveal-delay: ${i * 80}ms; --mobile-order: ${-plan.speed}`}
 						>
 							<div class="top">
 								<h4>
@@ -66,25 +66,21 @@ const formatPrice = (value: number) =>
 							</p>
 							<div>
 								<p class="caption">{group.caption}</p>
-								<div class="action">
-									<div>
-										<p class="price">
-											{formatPrice(plan.price)}
-											<span>/mes</span>
-										</p>
-										<p class="regular">Luego {formatPrice(plan.regularPrice)}/mes</p>
-									</div>
-									<a href="#contactanos" class:list={['btn', group.noova ? 'btn-noova' : 'btn-dark']}>
-										Solicitar
-										<span class="sr-only">
-											{' '}
-											{technologyLabels[plan.technology]} {plan.speed} MB{group.noova && ' con Noova'}
-										</span>
-										<span class="btn-arrow">
-											<Icon name="arrow" size={13} />
-										</span>
-									</a>
-								</div>
+								<p class="price">
+									{formatPrice(plan.price)}
+									<span>/mes</span>
+								</p>
+								<p class="regular">Luego {formatPrice(plan.regularPrice)}/mes</p>
+								<a href="#contactanos" class:list={['btn', 'btn-dark', 'plan-cta', { 'btn-noova': group.noova }]}>
+									Solicitar
+									<span class="sr-only">
+										{' '}
+										{technologyLabels[plan.technology]} {plan.speed} MB{group.noova && ' con Noova'}
+									</span>
+									<span class="btn-arrow">
+										<Icon name="arrow" size={13} />
+									</span>
+								</a>
 							</div>
 						</li>
 					))}
@@ -139,6 +135,13 @@ const formatPrice = (value: number) =>
 			next.focus();
 			select(next);
 		});
+	});
+
+	// Links elsewhere on the page (e.g. the coverage result) can open a tab: data-plan-tab="wireless".
+	document.addEventListener('click', (event) => {
+		const link = (event.target as Element).closest<HTMLElement>('[data-plan-tab]');
+		const tab = link && tabs.find((t) => t.id === `tab-${link.dataset.planTab}`);
+		if (tab) select(tab);
 	});
 </script>
 
@@ -215,15 +218,6 @@ const formatPrice = (value: number) =>
 		vertical-align: 0.1em;
 	}
 
-	[role='tab'].noova[aria-selected='true'] {
-		background: var(--noova);
-		color: var(--ink);
-	}
-
-	[role='tab'].noova[aria-selected='true']::before {
-		background: var(--ink);
-	}
-
 	/* Panels: all visible without JS, one at a time with it. */
 	.panel {
 		margin-top: 3rem;
@@ -285,7 +279,7 @@ const formatPrice = (value: number) =>
 
 	.speed {
 		font-family: var(--font-display);
-		font-size: clamp(4.5rem, 7vw, 6.5rem);
+		font-size: clamp(3.5rem, 5vw, 4.75rem);
 		font-weight: 500;
 		line-height: 0.9;
 		letter-spacing: -0.06em;
@@ -305,52 +299,55 @@ const formatPrice = (value: number) =>
 		color: var(--muted);
 	}
 
-	.action {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.75rem;
+	/* Explains why there are two prices; "Luego" is the price charged afterwards, so it isn't struck through. */
+	.promo {
+		display: inline-block;
+		padding: 0.2rem 0.6rem;
+		border-radius: 999px;
+		background: var(--purple-soft);
+		font-size: 0.6875rem;
+		font-weight: 500;
+		letter-spacing: 0.04em;
+		color: var(--purple);
 	}
 
 	.price {
+		margin-top: 0.6rem;
 		font-family: var(--font-display);
-		font-size: 1.5rem;
+		font-size: clamp(2rem, 2.6vw, 2.5rem);
 		font-weight: 500;
 		line-height: 1;
-		letter-spacing: -0.03em;
+		letter-spacing: -0.035em;
 		white-space: nowrap;
 	}
 
 	.price span {
-		margin-left: 0.15rem;
+		margin-left: 0.2rem;
 		font-family: var(--font-body);
-		font-size: 0.75rem;
+		font-size: 0.875rem;
 		font-weight: 400;
 		letter-spacing: 0;
 		color: var(--muted);
 	}
 
 	.regular {
-		margin-top: 0.35rem;
-		font-size: 0.75rem;
+		margin-top: 0.4rem;
+		font-size: 0.8125rem;
 		color: var(--muted);
 		white-space: nowrap;
 	}
 
-	/* Noova combos carry its brand blue on the CTA. White fails contrast on it, so text stays ink. */
-	.btn-noova {
+	/* Own row, full width: the button no longer competes with the price. */
+	.plan-cta {
+		justify-content: space-between;
+		width: 100%;
+		margin-top: 1.25rem;
+	}
+
+	/* Noova combos look like the rest until hover, which takes its brand blue. White fails contrast on it, so text turns ink. */
+	.btn-noova:hover {
 		background: var(--noova);
 		color: var(--ink);
-	}
-
-	.btn-noova .btn-arrow {
-		background: var(--ink);
-		color: var(--cream);
-	}
-
-	.btn-noova:hover {
-		background: color-mix(in oklch, var(--noova) 85%, var(--ink));
 	}
 
 	/* Help card that completes a short row. */
@@ -398,6 +395,11 @@ const formatPrice = (value: number) =>
 
 		.plan {
 			min-height: 18rem;
+		}
+
+		/* Fastest plan first when stacked; the note card (no order) stays last. */
+		.plan.card {
+			order: var(--mobile-order);
 		}
 
 		.note {
