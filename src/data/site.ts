@@ -36,7 +36,7 @@ export const stats: Stat[] = [
 ];
 
 /** Snapshot of the Google Business Profile; update by hand when it changes. */
-export const reviewSummary = { rating: 4.2, count: 153 };
+export const reviewSummary = { rating: 4.2, count: 160 };
 
 /** Curated Google reviews, quoted verbatim. Authors shown as first name + initial for privacy. */
 export const reviews = [
