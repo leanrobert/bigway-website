@@ -1,5 +1,7 @@
 ---
 import { Font } from 'astro:assets';
+import logo from '../assets/logo.svg';
+import { office } from '../data/site';
 
 interface Props {
 	title: string;
@@ -7,6 +9,30 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).href;
+const ogImageUrl = new URL('/og-image.png', Astro.site).href;
+
+// Business details for Google's knowledge panel and local results.
+const businessSchema = {
+	'@context': 'https://schema.org',
+	'@type': 'LocalBusiness',
+	'@id': new URL('/#business', Astro.site).href,
+	name: 'Bigway',
+	description,
+	url: new URL('/', Astro.site).href,
+	logo: new URL(logo.src, Astro.site).href,
+	image: ogImageUrl,
+	address: {
+		'@type': 'PostalAddress',
+		streetAddress: `${office.street} (${office.building})`,
+		addressLocality: office.city,
+		addressRegion: 'Mendoza',
+		addressCountry: 'AR',
+	},
+	areaServed: 'Gran Mendoza',
+	hasMap: office.mapsUrl,
+};
 ---
 
 <html lang="es-AR">
@@ -20,10 +46,20 @@ const { title, description } = Astro.props;
 		<meta name="theme-color" content="#f3f1ec" />
 		<title>{title}</title>
 		<meta name="description" content={description} />
+		<link rel="canonical" href={canonicalUrl} />
+		<link rel="sitemap" href="/sitemap.xml" />
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={description} />
 		<meta property="og:type" content="website" />
 		<meta property="og:locale" content="es_AR" />
+		<meta property="og:site_name" content="Bigway" />
+		<meta property="og:url" content={canonicalUrl} />
+		<meta property="og:image" content={ogImageUrl} />
+		<meta property="og:image:width" content="1200" />
+		<meta property="og:image:height" content="630" />
+		<meta property="og:image:alt" content="Logo de Bigway" />
+		<meta name="twitter:card" content="summary_large_image" />
+		<script is:inline type="application/ld+json" set:html={JSON.stringify(businessSchema)} />
 		<Font cssVariable="--font-display" preload />
 		<Font cssVariable="--font-body" preload />
 		<Font cssVariable="--font-serif" />

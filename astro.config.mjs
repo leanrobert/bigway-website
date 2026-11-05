@@ -4,6 +4,8 @@ import node from '@astrojs/node';
 
 // https://astro.build/config
 export default defineConfig({
+	// Canonical origin: absolute URLs for canonical, Open Graph, robots.txt and sitemap.
+	site: 'https://bigway.com.ar',
 	// Pages stay prerendered; the adapter only serves on-demand parts (the live reviews island).
 	adapter: node({ mode: 'standalone' }),
 	env: {
