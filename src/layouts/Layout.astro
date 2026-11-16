@@ -1,7 +1,7 @@
 ---
 import { Font } from 'astro:assets';
 import logo from '../assets/logo.svg';
-import { office } from '../data/site';
+import { gtmId, office } from '../data/site';
 
 interface Props {
 	title: string;
@@ -38,6 +38,19 @@ const businessSchema = {
 <html lang="es-AR">
 	<head>
 		<meta charset="utf-8" />
+		<!-- Google Tag Manager: as high in <head> as possible, per Google's install instructions. -->
+		<script is:inline define:vars={{ gtmId }}>
+			(function (w, d, s, l, i) {
+				w[l] = w[l] || [];
+				w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+				var f = d.getElementsByTagName(s)[0],
+					j = d.createElement(s),
+					dl = l != 'dataLayer' ? '&l=' + l : '';
+				j.async = true;
+				j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+				f.parentNode.insertBefore(j, f);
+			})(window, document, 'script', 'dataLayer', gtmId);
+		</script>
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="icon" href="/favicon.ico" sizes="32x32" />
@@ -68,12 +81,24 @@ const businessSchema = {
 		</script>
 	</head>
 	<body>
+		<!-- Google Tag Manager (noscript) -->
+		<noscript>
+			<iframe
+				src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
+				height="0"
+				width="0"
+				style="display:none;visibility:hidden"></iframe>
+		</noscript>
 		<a href="#main" class="skip-link">Saltar al contenido</a>
 		<slot />
 	</body>
 </html>
 
 <script>
+	import { trackWhatsAppClicks } from '../lib/analytics';
+
+	trackWhatsAppClicks();
+
 	// Reveal blocks as they scroll into view.
 	const blocks = document.querySelectorAll('[data-reveal]');
 	const observer = new IntersectionObserver(

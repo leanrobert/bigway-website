@@ -2,6 +2,9 @@ export const whatsappUrl = "https://wa.link/o13enw";
 /** Same number wa.link points to; used to open a chat with a prefilled message. */
 export const whatsappNumber = "542616577260";
 
+/** Google Tag Manager container. Google Ads conversions are configured there, not in code. */
+export const gtmId = "GTM-NSBMXB28";
+
 export const office = {
   building: "Galería San Marcos",
   street: "Sarmiento 133, Local 18",

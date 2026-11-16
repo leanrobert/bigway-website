@@ -63,10 +63,14 @@ const fields = [
 </section>
 
 <script>
+	import { track } from '../lib/analytics';
+
 	const form = document.querySelector<HTMLFormElement>('[data-contact-form]');
 
 	form?.addEventListener('submit', (event) => {
 		event.preventDefault();
+		// Only the event, never the answers: they are personal data.
+		track('generate_lead', { form_location: 'contact' });
 		const data = new FormData(form);
 		const value = (name: string) => String(data.get(name) ?? '').trim();
 
